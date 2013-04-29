@@ -1,4 +1,4 @@
-These are some valuable papers on P2P. 
+These are some valuable papers on P2P. Obviously the newer the paper, the more likely the chance that it will be better than previous years.
 
 ### General
 * bitcoin: blockchain, distributed timestamp server
@@ -10,6 +10,6 @@ These are some valuable papers on P2P.
 
 ### Publish/Subscribe systems
 * scribe: one of the first, built on Pastry DHT.
-* quasar
-* pub2sub: cites quasar
-* poldercast: cites quasar
+* quasar: 2008.
+* pub2sub: 2009.
+* poldercast: 2012.
