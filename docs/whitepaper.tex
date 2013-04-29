@@ -3,16 +3,16 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
-\author{Liam Edwards-Playne <liamz.co>}
-\title{BitWeav - a system for decentralised autonomous micro-communications}
+\author{Liam Edwards-Playne \textless liamz.co\textgreater}
+\title{BitWeav - a system for decentralised peer-to-peer autonomous communications}
 \begin{document}
 \maketitle
 \begin{abstract}
-Weav is a system for decentralised peer-to-peer autonomous micro-communications. It is as an exercise to mimic the functionality of Twitter tweets, Facebook Chat and IRC, but without the inherent centralisation. 
+Weav is a system for decentralised peer-to-peer autonomous communications. It is as an exercise to mimic the functionality of Twitter tweets, Facebook Chat and IRC, but without the inherent centralisation. 
 \end{abstract}
 
 \section{Introduction}
-BitWeav is an application built in response to new technologies and an impovement of existing applications in the field. While this paper describes a theoretical implementation, BitWeav is intended to be implemented on top of web technologies. 
+BitWeav is an application built in response to new technologies and an improvement of existing applications in the field. While this paper describes a theoretical implementation, BitWeav is intended to be implemented on top of web technologies. 
 
 In 2011, Google released their communications suite for the web called WebRTC. As of 2013, Google Chrome and Firefox both support PeerConnection, which is a method of communicating from browser to browser purely using JavaScript. 
 
@@ -24,53 +24,65 @@ The prominent functionality of BitWeav was sourced from 3 main inspirations: Fac
 \section{Design}
 The following objectives were formed to guide development:
 \begin{enumerate}
-\item \textbf{Decentralised}: we should not rely on any single entity to provide for any other entity, in the circumstance where their connection is severed would produce significant and unrepairable consequences. 
-\item \textbf{Open}: we should rely totally on open technologies and likewise publish all Weav concepts under a fair license.
+\item \textbf{Decentralised}: we should not rely on any single entity to provide for any other entity, in the circumstances where if their connection were severed it would produce unrepairable damage. 
+\item \textbf{Open}: we should rely totally on open technologies and likewise publish all BitWeav concepts/implementations under a fair license.
 \item \textbf{Secure}: the authenticity, integrity, and completeness of content sent within the network must be preserved by the system and independently verifiable by nodes. Replay attacks must be defended against.
 \item \textbf{Simple}: the content distributed by the system should be contained within a single type - the message. All messages, contacts, topics should be uniquely identified by a single data type - the ID.
-\item \textbf{Lightweight}: network packets distributed by nodes should not exceed 256 bytes (excluding fields for privacy). 
+\item \textbf{Lightweight}: messages distributed by nodes should not exceed 256 bytes. 
 \item \textbf{Topic-enabled}: messages should be able to be categorised under topics using tags.
 \item \textbf{Threaded}: threaded messaging should be inbuilt, wherein messages can be in reply to other messages, and descend from a common root (thread)
-\item \textbf{Privacy-enabled}: messages should be able to be marked as private, whereby only nodes who they are addressed to (if any) can decrypt it
+\item \textbf{Privacy-enabled}: messages should be able to be marked as private, whereby only nodes who they are addressed to (if any) can read it
 \item \textbf{Autonomous}: a user should simply require to input the details of a bootstrap node (IP address, contact address) to facilitate application function.
 \end{enumerate}
 
-While this paper describes a collection of concepts, it is implementation independent.
+While this paper describes a collection of concepts, it is implementation independent. However it must be noted that although the design was very important, the implementation of the autonomous setup objective was equally significant.
+
 
 \section{Messages}
-A message is a generic container for micro-content, with additional meta-information. Micro-content is the basis of the micro-publishing idea: when content is small, it introduces constraints on users to relay more information into fewer words.  
+I define a message to be a generic container for micro-content. Micro-content is the basis of the micro-publishing idea: when content is small, it introduces constraints on users to relay more information into fewer words.  
 
 The bulk of the message is the payload. The payload is 160 bytes in size, and is interpreted as an array of UTF-8 characters. UTF-8 was chosen as the encoding, as it is a standardised format that has wide usage on the Web and has sufficient support for other alphabets. The 160 character limit was chosen because it has shown sufficient for expressing ideas (text messages, Twitter tweets) in threaded communications. 
 
 Within the payload, multiple tags can be defined that correspond to the topics that the message belongs to. Like Twitter tweets and IRC channels, tags are identified by a hash and delimited by spaces. The payload may contain multiple tags.
 
-\section{Contacts}
-A contact is a generic term that encompasses machines and users accessing the BitWeav network. Contacts sign and perform other operations using their 384 bit elliptic curve  public/private keypair. In comparison to AES, this keysize is what is recommended by the government for highly sensitive data.
 
-For the overlay network, there is a necessity for unique keys amongst clients. A random distribution of unique keys is beneficial for network operations, and also guards against multiple attacks. The key of the node (or ID) is the identification function (described below) computed over the public key (which is mathematically bound to the private key) - this makes forging an address infeasible. 
+\section{Contacts}
+I define a contact to be a generic term that encompasses machines and users accessing the BitWeav network. Contacts sign and perform other operations using their 384 bit elliptic curve public/private keypair. In comparison to AES, this keysize is what is recommended by the government for highly sensitive data [CITE].
+
+For the overlay network, there is a necessity for unique keys amongst clients. The key or ID of the node is the identification function (described below) computed over the public key. Since the public key is mathematically bound to the private key, this process makes forging an address infeasible.
+
 
 \section{Identification}
-As a requirement of the 'simple' objective, we must have a system of identification for contacts, messages and topics. I define the ID of these types to be the hash of their content. The ID is 224 bits in size and is computed using two iterations of the SHA2-224 hash algorithm (TODO WHY LENGTH EXTENSION ATTACKS).
+As a requirement of the 'simple' objective, we should have a single system of identification for contacts, messages and topics - the ID. I define the ID of these types to be the hash of their content. The ID is 224 bits in size and is computed using the SHA2-224 hash algorithm.
 
 I employ SHA2-224 mainly because of its security and efficiency. As of April 2013, the feasibility of a hash collision is negligible. In contrast, the SHA1 family has had numerous significant attacks and is slower to compute. Finally, SHA3 is yet to be standardised. 
 
-\section{Threading}
-A message may optionally contain a 'reply' field, which contains the ID of the message it is in reply to. This field facilitates the reply mechanism of Twitter, but does not work well in group conversations (IRC, FB) where message threads may span multiple periods of time, and thus would require a long-running identification token to listen for.
 
-With this in mind, it is necessary to introduce the 'root' field, which identifies the original message that started the thread. The root field is  optional when the reply field is included (the reply is assumed to be the root), and ignored if no reply field exists. 
+\section{Threading}
+A message may optionally contain a 'reply' field, which stores the ID of the message it is in reply to. This field facilitates the reply mechanism of Twitter, but does not work well in group conversations (IRC, FB) where message threads may span multiple periods of time, and thus would require a long-running identification token to listen for.
+
+With this issue in mind, it is necessary to introduce the 'root' field, which identifies the original message that started the thread. The root field is  optional when the reply field is included (the reply is assumed to be the root), and ignored if no reply field exists.
+
 
 \section{Privacy}
-Private messaging is enabled at the transport level. 
+Private messaging, whether it be between individuals or groups, is achieved using a private field. Since we assume a secured transport layer (see \textit{Overlay network}), it is only necessary to include a field to distinguish between the visibility of messages. A node should not forward a message that has the private field set. 
+
 
 \section{Overlay network}
-\iffalse
-https://code.google.com/p/skademlia/
-https://research.microsoft.com/en-us/um/people/antr/PAST/scribe.pdf
-http://www.cs.toronto.edu/iptps2008/final/70.pdf
-https://en.wikipedia.org/wiki/Tapestry_(DHT)
-\fi
+The overlay network that this design assumes requires the following features:
+\begin{list}
+\item A bootstrap mechanism, to find nodes
+\item A broadcast mechanism, whereby messages are sent to interested nodes according to a topic (of type ID)
+\item A subscribe mechanism, whereby a contact requests nodes to forward it messages on a topic
+\item A 
+\end{list}
+
+A node will broadcast messages to their topics. When messaging individual nodes, a node will anycast a FIND_NODE and then communicate directly.
+
+
 \section{Synchronisation}
 Due to the peer-to-peer nature of the overlay network, group messaging may be impeded by messages not being sent - unintentionally or on purpose. When we receive a message that is in reply to another message we have no record of, we contact the sending node to get the message. If the node does not respond, we discard their message. This method dissuades spammers from sending messages with falsified reply fields, as they will be flooded with queries. 
+
 
 \section{Implementation}
 One of the main issues with Retroshare and the like, is the need to transfer public/private keys. Cryptographic keypairs are not user-friendly, at least not for communications. In Bitcoin, users have adapted, but this is only because they are user less frequently that in social applications. What was needed was a user friendly motif of device-independent identification. 
@@ -78,6 +90,7 @@ One of the main issues with Retroshare and the like, is the need to transfer pub
 In BitWeav I have taken an approach originally based on Bitcoin brainwallets. In BitWeav, every contact is authenticated by a public/private keypair, in comparison to social services whereby a username/password combination is used. As of current, we do not have a solution to providing the latter in a P2P manner. However we can provide a global identification mechanism by generating the private key using the hash of the username/password combination. 
 
 There is an issue of nodes bruteforcing the private key. To guard against this, I employ firstly a password hashing algorithm (scrypt) to slow the process. The other thing I do is use the username in conjunction with the password, which guards against malicious nodes 'grabbing' many accounts from different users by simply bruteforcing common passwords. 
+
 
 \section{Future work}
 The username/password mechanism could be improved. A novel method was described here[http://www.csc.kth.se/~gkreitz/p2ppass/passwordsP2P.pdf] which could be employed to facilitate "Remember me", password change, password reset, at the cost of lengthened network setup. 
