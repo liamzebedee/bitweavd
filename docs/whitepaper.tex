@@ -8,18 +8,14 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-Weav is a system for decentralised peer-to-peer autonomous communications. It is as an exercise to mimic the functionality of Twitter tweets, Facebook Chat and IRC, but without the inherent centralisation. 
 \end{abstract}
 
 \section{Introduction}
-BitWeav is an application built in response to new technologies and an improvement of existing applications in the field. While this paper describes a theoretical implementation, BitWeav is intended to be implemented on top of web technologies. 
+At the heart of the Internet is communication. Twitter facilitates an disorganised form of discussion called \textit{micro blogging}, which pressures users to compact ideas into 140 characters, wherein they can be tagged and discussed in public among a large community of pseudonymous users. Skype supports more structured discussion threads, whereby any number of users can privately and securely discuss in a reply-based context. Finally there is IRC, which too has these reply-based group discussions, instead taking place on channels and being public. 
 
-In 2011, Google released their communications suite for the web called WebRTC. As of 2013, Google Chrome and Firefox both support PeerConnection, which is a method of communicating from browser to browser purely using JavaScript. 
+An aspect common to all three of these communications platforms is centralisation. Relying on a communications platform solely based on one's trust in the provider is a poor strategy. Decentralised platforms offer part of the solution, but their rigid structure of operations harms ease of use. What is needed is a hybrid between the two: a system which is decentralised in nature but employs trust to an extent, to improve overall function. 
 
-In the March of 2013, the Bitmessage application was gaining traction. I had previously tried other decentralized messaging applications, such as Retroshare, which while function, were combersome to setup. Aside from this, I felt that these applications could've been better designed. With the advent of WebRTC, I decided to start working on BitWeav. 
-
-The prominent functionality of BitWeav was sourced from 3 main inspirations: Facebook Chat, Twitter and IRC. We took the microblogging aspect of Twitter, modified the design of tags to facilitate group chat (IRC channels) and finally implemented the aspect of private conversations from Facebook Chat. 
-
+We detail a decentralised peer-to-peer system for communications, that is implemented using web technologies. It features the most significant features of Skype, IRC and Twitter. It uses minimal trust features to enhance network function, but does not rely on it.
 
 \section{Design}
 The following objectives were formed to guide development:
@@ -39,7 +35,7 @@ While this paper describes a collection of concepts, it is implementation indepe
 
 
 \section{Messages}
-I define a message to be a generic container for micro-content. Micro-content is the basis of the micro-publishing idea: when content is small, it introduces constraints on users to relay more information into fewer words.  
+We define a message to be a generic container for micro-content. Micro-content is the basis of the micro-publishing idea: when content is small, it introduces constraints on users to relay more information into fewer words.  
 
 The bulk of the message is the payload. The payload is 160 bytes in size, and is interpreted as an array of UTF-8 characters. UTF-8 was chosen as the encoding, as it is a standardised format that has wide usage on the Web and has sufficient support for other alphabets. The 160 character limit was chosen because it has shown sufficient for expressing ideas (text messages, Twitter tweets) in threaded communications. 
 
@@ -59,7 +55,7 @@ I employ SHA2-224 mainly because of its security and efficiency. As of April 201
 
 
 \section{Threading}
-A message may optionally contain a 'reply' field, which stores the ID of the message it is in reply to. This field facilitates the reply mechanism of Twitter, but does not work well in group conversations (IRC, FB) where message threads may span multiple periods of time, and thus would require a long-running identification token to listen for.
+A message may optionally contain a 'reply' field, which stores the ID of the message it is in reply to. This field facilitates the reply mechanism of Twitter, but does not work well in group conversations (IRC, Skype) where message threads may span multiple periods of time, and thus would require a long-running identification token to listen for.
 
 With this issue in mind, it is necessary to introduce the 'root' field, which identifies the original message that started the thread. The root field is  optional when the reply field is included (the reply is assumed to be the root), and ignored if no reply field exists.
 
@@ -70,14 +66,20 @@ Private messaging, whether it be between individuals or groups, is achieved usin
 
 \section{Overlay network}
 The overlay network that this design assumes requires the following features:
-\begin{list}
-\item A bootstrap mechanism, to find nodes
-\item A broadcast mechanism, whereby messages are sent to interested nodes according to a topic (of type ID)
-\item A subscribe mechanism, whereby a contact requests nodes to forward it messages on a topic
-\item A 
-\end{list}
+\begin{itemize}
+\item A bootstrap mechanism, to find nodes.
+\item A broadcast mechanism, whereby messages are sent to interested nodes according to a topic (of type ID).
+\item A subscribe mechanism, whereby a contact requests nodes to forward it messages on a topic.
+\end{itemize}
 
-A node will broadcast messages to their topics. When messaging individual nodes, a node will anycast a FIND_NODE and then communicate directly.
+We use an RPC framework to provide the following functions:
+\begin{itemize}
+\item FIND\_NODE: 
+\item PUBLISH
+\item SUBSCRIBE
+\item RECENT: to get recent messages distributed on a topic
+\item SEARCH: to get particular messages and their subsequent replies
+\end{itemize}
 
 
 \section{Synchronisation}
@@ -85,14 +87,19 @@ Due to the peer-to-peer nature of the overlay network, group messaging may be im
 
 
 \section{Implementation}
+\subsection{Authentication}
 One of the main issues with Retroshare and the like, is the need to transfer public/private keys. Cryptographic keypairs are not user-friendly, at least not for communications. In Bitcoin, users have adapted, but this is only because they are user less frequently that in social applications. What was needed was a user friendly motif of device-independent identification. 
 
 In BitWeav I have taken an approach originally based on Bitcoin brainwallets. In BitWeav, every contact is authenticated by a public/private keypair, in comparison to social services whereby a username/password combination is used. As of current, we do not have a solution to providing the latter in a P2P manner. However we can provide a global identification mechanism by generating the private key using the hash of the username/password combination. 
 
 There is an issue of nodes bruteforcing the private key. To guard against this, I employ firstly a password hashing algorithm (scrypt) to slow the process. The other thing I do is use the username in conjunction with the password, which guards against malicious nodes 'grabbing' many accounts from different users by simply bruteforcing common passwords. 
 
+\subsection{Ease of use}
+Web application.
 
 \section{Future work}
-The username/password mechanism could be improved. A novel method was described here[http://www.csc.kth.se/~gkreitz/p2ppass/passwordsP2P.pdf] which could be employed to facilitate "Remember me", password change, password reset, at the cost of lengthened network setup. 
+The username/password mechanism could be improved. A novel method was described here[http://www.csc.kth.se/~gkreitz/p2ppass/passwordsP2P.pdf] which could be employed to facilitate "Remember me", password change, password reset, at the cost of lengthened network setup. y
+
+Likewise, when this design is fully implemented, we intend to incorporate realtime audio/video call functionality, being the other significant aspect of WebRTC.
 
 \end{document}
