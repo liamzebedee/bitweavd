@@ -10,6 +10,13 @@
 \begin{abstract}
 \end{abstract}
 
+\iffalse
+TODO:
+ - write overlay network publish/subscribe details
+ - detail rpc's
+ - detail the user interface
+\fi
+
 \section{Introduction}
 At the heart of the Internet is communication. Twitter facilitates an disorganised form of discussion called \textit{micro blogging}, which pressures users to compact ideas into 140 characters, wherein they can be tagged and discussed in public among a large community of pseudonymous users. Skype supports more structured discussion threads, whereby any number of users can privately and securely discuss in a reply-based context. Finally there is IRC, which too has these reply-based group discussions, instead taking place on channels and being public. 
 
@@ -68,7 +75,7 @@ Private messaging, whether it be between individuals or groups, is achieved usin
 The overlay network that this design assumes requires the following features:
 \begin{itemize}
 \item A bootstrap mechanism, to find nodes.
-\item A broadcast mechanism, whereby messages are sent to interested nodes according to a topic (of type ID).
+\item A publish mechanism, whereby messages are broadcast to interested nodes according to a topic (of type ID).
 \item A subscribe mechanism, whereby a contact requests nodes to forward it messages on a topic.
 \end{itemize}
 
@@ -81,6 +88,8 @@ We use an RPC framework to provide the following functions:
 \item SEARCH: to get particular messages and their subsequent replies
 \end{itemize}
 
+We utilise a publish/subscribe overlay called PolderCast. 
+
 
 \section{Synchronisation}
 Due to the peer-to-peer nature of the overlay network, group messaging may be impeded by messages not being sent - unintentionally or on purpose. When we receive a message that is in reply to another message we have no record of, we contact the sending node to get the message. If the node does not respond, we discard their message. This method dissuades spammers from sending messages with falsified reply fields, as they will be flooded with queries. 
@@ -88,14 +97,23 @@ Due to the peer-to-peer nature of the overlay network, group messaging may be im
 
 \section{Implementation}
 \subsection{Authentication}
-One of the main issues with Retroshare and the like, is the need to transfer public/private keys. Cryptographic keypairs are not user-friendly, at least not for communications. In Bitcoin, users have adapted, but this is only because they are user less frequently that in social applications. What was needed was a user friendly motif of device-independent identification. 
+One of the main issues with Retroshare and the like, is the need to transfer public/private keys. Cryptographic keypairs are not user-friendly, at least not for communications. In Bitcoin, users have adapted, but this is only because they are used less frequently than in social applications. What was needed was a user friendly motif of device-independent identification. 
 
 In BitWeav I have taken an approach originally based on Bitcoin brainwallets. In BitWeav, every contact is authenticated by a public/private keypair, in comparison to social services whereby a username/password combination is used. As of current, we do not have a solution to providing the latter in a P2P manner. However we can provide a global identification mechanism by generating the private key using the hash of the username/password combination. 
 
 There is an issue of nodes bruteforcing the private key. To guard against this, I employ firstly a password hashing algorithm (scrypt) to slow the process. The other thing I do is use the username in conjunction with the password, which guards against malicious nodes 'grabbing' many accounts from different users by simply bruteforcing common passwords. 
 
+\subsection{Interface}
+We host an open-source web application on weav.co. Users access the website through weav.co, although they may host their own local instance. The application is intended to be cached by the user, so they can access it by the familiar weav.co regardless of their Internet connection. 
+
+We use the DataChannel aspect of WebRTC to facilitate the overlay network.  Bootstrapping is achieved by connecting to a list of known nodes or an IRC channel containing active nodes. We also utilise the publicly available STUN servers to get past NAT. 
+
+The user interface is built using the Bootstrap framework and AngularJS. 
+
 \subsection{Ease of use}
-Web application.
+Web application. The web application splits messages into three views, with an additional filter field to show messages on a particular topic. These views are: disorganised, reply and thread. 
+
+We employ third-party STUN servers to facilitate magnificently easy setup. 
 
 \section{Future work}
 The username/password mechanism could be improved. A novel method was described here[http://www.csc.kth.se/~gkreitz/p2ppass/passwordsP2P.pdf] which could be employed to facilitate "Remember me", password change, password reset, at the cost of lengthened network setup. y
