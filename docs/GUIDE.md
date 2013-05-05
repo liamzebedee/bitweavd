@@ -7,9 +7,5 @@ These are some valuable papers on P2P. Obviously the newer the paper, the more l
 * kademlia: extremely popular DHT design.
 * skademlia: kademlia improved.
 * passwordsP2P: nice DHT-based distribution of keys, using passwords to retrieve etc.
-
-### Publish/Subscribe systems
-* scribe: one of the first, built on Pastry DHT.
-* quasar: 2008.
-* pub2sub: 2009.
-* poldercast: 2012.
+* poldercast: publish/subscribe system from 2012.
+* epidemic-organisation-in-p2p: contains vicinity and cyclon protocols (used by poldercast)
