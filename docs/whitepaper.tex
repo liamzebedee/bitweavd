@@ -11,10 +11,11 @@
 \end{abstract}
 
 \iffalse
-TODO:
- - write overlay network publish/subscribe details
- - detail rpc's
- - detail the user interface
+archive messages on fellow nodes (those who are stored in address book)
+
+kick - employ decentralised censorship of spam - if most nodes censor spam and don't forward it, the overall amount will go down.
+
+structured private group messaging -- write out design for pub/sub, then get back to me
 \fi
 
 \section{Introduction}
@@ -29,7 +30,7 @@ The following objectives were formed to guide development:
 \begin{enumerate}
 \item \textbf{Decentralised}: we should not rely on any single entity to provide for any other entity, in the circumstances where if their connection were severed it would produce unrepairable damage. 
 \item \textbf{Open}: we should rely totally on open technologies and likewise publish all BitWeav concepts/implementations under a fair license.
-\item \textbf{Secure}: the authenticity, integrity, and completeness of content sent within the network must be preserved by the system and independently verifiable by nodes. Replay attacks must be defended against.
+\item \textbf{Secure}: the authenticity, integrity, and completeness of content sent within the network must be preserved by the system and independently verifiable by nodes. Replay attacks must be defended against. Forward secrecy must be ensured for private messages.
 \item \textbf{Simple}: the content distributed by the system should be contained within a single type - the message. All messages, contacts, topics should be uniquely identified by a single data type - the ID.
 \item \textbf{Lightweight}: messages distributed by nodes should not exceed 256 bytes. 
 \item \textbf{Topic-enabled}: messages should be able to be categorised under topics using tags.
@@ -77,22 +78,29 @@ The overlay network that this design assumes requires the following features:
 \item A bootstrap mechanism, to find nodes.
 \item A publish mechanism, whereby messages are broadcast to interested nodes according to a topic (of type ID).
 \item A subscribe mechanism, whereby a contact requests nodes to forward it messages on a topic.
+\item A message retrieval mechanism, to get recent messages. 
 \end{itemize}
+
+We base our overlay network design on a topic-based P2P publish/subscribe architecture called PolderCast. Within Poldercast, nodes form rings according to topics that they subscribe to. 
 
 We use an RPC framework to provide the following functions:
 \begin{itemize}
-\item FIND\_NODE: 
+\item PEER_SAMPLE:
+\item  
 \item PUBLISH
 \item SUBSCRIBE
 \item RECENT: to get recent messages distributed on a topic
 \item SEARCH: to get particular messages and their subsequent replies
 \end{itemize}
 
-We utilise a publish/subscribe overlay called PolderCast. 
 
 
 \section{Synchronisation}
 Due to the peer-to-peer nature of the overlay network, group messaging may be impeded by messages not being sent - unintentionally or on purpose. When we receive a message that is in reply to another message we have no record of, we contact the sending node to get the message. If the node does not respond, we discard their message. This method dissuades spammers from sending messages with falsified reply fields, as they will be flooded with queries. 
+
+
+\section{Profiles}
+To aid in ease of use, we impose an address book and a subscription set. An address book stores pseudonym+contact pairs. A subscription set stores node identifiers. We assume that nodes who store eachother in their address books communicate frequently, and thus would benefit eachother by storing a backup of their information on eachothers 
 
 
 \section{Implementation}
@@ -104,9 +112,9 @@ In BitWeav I have taken an approach originally based on Bitcoin brainwallets. In
 There is an issue of nodes bruteforcing the private key. To guard against this, I employ firstly a password hashing algorithm (scrypt) to slow the process. The other thing I do is use the username in conjunction with the password, which guards against malicious nodes 'grabbing' many accounts from different users by simply bruteforcing common passwords. 
 
 \subsection{Interface}
-We host an open-source web application on weav.co. Users access the website through weav.co, although they may host their own local instance. The application is intended to be cached by the user, so they can access it by the familiar weav.co regardless of their Internet connection. 
+We host an open-source web application on weav.co. Users access the website through weav.co, which has a Cache Manifest to enable offline use. This allows users to access it by the familiar weav.co regardless of their Internet connection. 
 
-We use the DataChannel aspect of WebRTC to facilitate the overlay network.  Bootstrapping is achieved by connecting to a list of known nodes or an IRC channel containing active nodes. We also utilise the publicly available STUN servers to get past NAT. 
+We use the DataChannel aspect of WebRTC to facilitate the overlay network.  Bootstrapping is achieved by connecting to a list of known nodes.
 
 The user interface is built using the Bootstrap framework and AngularJS. 
 
@@ -116,7 +124,7 @@ Web application. The web application splits messages into three views, with an a
 We employ third-party STUN servers to facilitate magnificently easy setup. 
 
 \section{Future work}
-The username/password mechanism could be improved. A novel method was described here[http://www.csc.kth.se/~gkreitz/p2ppass/passwordsP2P.pdf] which could be employed to facilitate "Remember me", password change, password reset, at the cost of lengthened network setup. y
+
 
 Likewise, when this design is fully implemented, we intend to incorporate realtime audio/video call functionality, being the other significant aspect of WebRTC.
 
