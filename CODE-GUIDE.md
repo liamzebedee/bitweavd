@@ -8,4 +8,4 @@ Both the documentation and source files are kept on the **master** branch. The *
 * [RequireJS](http://requirejs.org/) for JS modularity. 
 * [AngularJS](http://angularjs.org/) used as a general web application framework.
 
-We use the [Cache Manifest](https://en.wikipedia.org/wiki/Cache_manifest_in_HTML5) feature of HTML5 to provide offline access to the web application.
+We use the [Cache Manifest](https://en.wikipedia.org/wiki/Cache_manifest_in_HTML5) feature of HTML5 to provide offline access to the web application. 
