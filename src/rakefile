@@ -1,0 +1,4 @@
+task :run do
+	system "jekyll serve --watch"
+end
+
