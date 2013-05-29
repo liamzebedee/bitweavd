@@ -13,6 +13,11 @@ var services = {};
 
 // Register a function @func as service @name to be provided by RPC.
 // @func must be in the form function(msg, args)
+// msg is an object with 4 fields: 
+//  - sender: the node that sent the message
+//  - id: id of the message
+//  - version: version of the message
+//  - reply: a helper function to reply to the message
 function register(name, func) {
 	services[name] = func;
 }
@@ -48,6 +53,8 @@ function Node() {
 		return idCounter;
 	}
 	
+	// Sends a query to a node
+	// @returns a promise, with a single argument for done being the dictionary of return values
 	function query(name, args) {
 		// XXX check if args is an obj
 		var queryMsg = Query();
@@ -60,7 +67,9 @@ function Node() {
 		pending[id] = dfd;
 		return dfd.promise();
 	}
-	function queryNoReply(name, args) {
+	// Sends a query that doesn't require (or accept) a reply. 
+	// e.g. broadcast message
+	function broadcast(name, args) {
 		// XXX check if args is an obj
 		var queryMsg = Query();
 		queryMsg.m = name;
@@ -116,7 +125,7 @@ function Node() {
 	
 	return {
 		query: query,
-		queryNoReply: queryNoReply,
+		broadcast: broadcast,
 	}
 }
 
