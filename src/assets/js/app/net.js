@@ -3,7 +3,7 @@
 // This module contains a generic remote procedure call mechanism that functions 
 // over WebRTC DataChannels. 
 // (see docs/rpc.md for more info)
-define(['jquery', 'app/webrtc', 'app/bencode'],
+define(['jquery', 'app/webrtc', 'bencode'],
 function($, webrtc, bencode){
 
 // Version to be transmitted over the wire.
@@ -69,12 +69,12 @@ function Node() {
 	}
 	
 	function sendDict(dict) {
-		var msg = bencode.encode(dict).toString();
+		var msg = bencode.encode(dict);
 		// XXX Write to datachannel
 	}
 	
 	function onmessage(msg) {
-		msg = bencoding.decode(new Buffer(msg));
+		msg = bencode.decode(msg);
 	
 		// Query
 		if(msg.q) {

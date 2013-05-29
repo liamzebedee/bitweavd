@@ -1,4 +1,4 @@
-define(['jquery', 'app/net'], function($, net, rpc){
+define(['jquery', 'app/net', 'app/bencode'], function($, net, bencode){
 	/*const IP = 'X';
 	var node = net.connect(IP);
 	net.register('ping', function(msg, args){
@@ -10,5 +10,4 @@ define(['jquery', 'app/net'], function($, net, rpc){
 		alert(args.msg);
 	});
 	*/
-	
 });
