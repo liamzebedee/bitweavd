@@ -4,128 +4,90 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \author{Liam Edwards-Playne \textless liamz.co\textgreater}
-\title{BitWeav - a system for decentralised peer-to-peer autonomous communications}
+\date{June 1, 2013}
+\title{BitWeav - a web application for scalable decentralised peer-to-peer  communications}
 \begin{document}
 \maketitle
 \begin{abstract}
 \end{abstract}
 
-\iffalse
-archive messages on fellow nodes (those who are stored in address book)
-
-kick - employ decentralised censorship of spam - if most nodes censor spam and don't forward it, the overall amount will go down.
-
-structured private group messaging -- write out design for pub/sub, then get back to me
-\fi
-
 \section{Introduction}
-At the heart of the Internet is communication. Twitter facilitates an disorganised form of discussion called \textit{micro blogging}, which pressures users to compact ideas into 140 characters, wherein they can be tagged and discussed in public among a large community of pseudonymous users. Skype supports more structured discussion threads, whereby any number of users can privately and securely discuss in a reply-based context. Finally there is IRC, which too has these reply-based group discussions, instead taking place on channels and being public. 
+In the last half-decade we have seen how the microblogging atmosphere of Twitter has proven the value of online communication. The fundamental principle of microblogging, which is the compacting of ideas into 140 characters, has sparked a revolution in how we communicate. Users could spark a conversation on topics (tags) with strangers, discussing anything and everything in real-time. Through trending topics, this public yet often concealed discussion platform which is online communication could give rise to the sharing of influential ideas and the stirring of the masses. We could see this in events such as the Egyptian Revolution of 2011 and Occupy Wall Street. Such an invaluable resource must be kept sustainable, but we have seen that due to the centralised nature of this tool, as well as its issues with corporate control, there is a need for an alternative. 
 
-An aspect common to all three of these communications platforms is centralisation. Relying on a communications platform solely based on one's trust in the provider is a poor strategy. Decentralised platforms offer part of the solution, but their rigid structure of operations harms ease of use. What is needed is a hybrid between the two: a system which is decentralised in nature but employs trust to an extent, to improve overall function. 
+A similar, older and more sustainable platform is IRC. Like Twitter IRC facilitated public text-based discussion on topics (channels). It had its advantages and disadvantages as it used a moderator-based group discussion motif called a channel, but the user bases of such were fragmented across differing IRC networks. Nonetheless, its more advanced organised discussion led to it becoming the key communications tool for 'hackers'. Hackers found the setup requiring minimum personal details, in combination with the simplistic and programmable interface which is the IRC protocol, allowed for high-quality discussions that focused on the content. 
 
-We detail a decentralised peer-to-peer system for communications, that is implemented using web technologies. It features the most significant features of Skype, IRC and Twitter. It uses minimal trust features to enhance network function, but does not rely on it.
+Finally there was Skype. The unique feature of Skype was its alternate method of communication - video chat. It allowed individuals to talk privately and securely with ease. Perhaps the most significant but relatively unknown aspect of Skype was its decentralised and peer-to-peer network architecture. Although Skype wasn't truly decentralised, it did show that service could be improved through such a system. Alas after the acquisition by Microsoft, the platform headed downhill, instead revoking the previous security and decentralised nature of the application in favour of centralisation. Users could no longer rely on the simple yet secure platform which it had a strong image for, and have been lost in a myriad of alternatives since. 
 
-\section{Design}
-The following objectives were formed to guide development:
+One such alternative I have come across was BitMessage. BitMessage is a text-based communications protocol that rivals email, relying on a decentralised network of nodes to provide a peer-to-peer communications platform that is secure and easy to use. I commend the author of the application on these features and the effort it had taken to construct such a project, but despite these things the protocol had numerous faults. Its broadcast mechanism which resembled a gossip protocol was not to be desired. There had also been numerous reported vulnerabilities, but these extend the scope of my interest. I set out to build an alternative, that would combine the features of Twitter, IRC and Skype, while retaining the sustainable nature of BitMessage. It was to be an experiment in decentralised peer-to-peer innovation.
+
+\section{Objectives}
+Recent innovations and technologies have brought together a feasible environment for the creation of such a solution. The introduction of in-browser peer-to-peer networking API particularly struck me as a fantastic opportunity to implement an application that was decentralised and had magnificent ease-of-use. Another significant aspect was a novel decentralised peer-to-peer publish-subscribe architecture called \textit{PolderCast}, which featured a publish-subscribe system that distributed messages only to the nodes who were interested, in a scalable manner.
+
+In this paper I describe both the theory of \textit{BitWeav} and its web-based implementation called \textit{Weav}. To guide the development of \textit{BitWeav}, I formulated a list of objectives that expressed the key features necessary for its completion.
 \begin{enumerate}
-\item \textbf{Decentralised}: we should not rely on any single entity to provide for any other entity, in the circumstances where if their connection were severed it would produce unrepairable damage. 
-\item \textbf{Open}: we should rely totally on open technologies and likewise publish all BitWeav concepts/implementations under a fair license.
+\item \textbf{Decentralised}: we must not rely on any set of nodes to provide for any other set of nodes, in the circumstances where if their connection were severed it would produce irreparable damage to the network. 
+
+\item \textbf{Open}: we must rely totally on open technologies and likewise publish all concepts/implementations under a fair license.
+
+\item \textbf{Simple}: the theory and implementation must be as simple as possible. the content distributed by the system must be contained within a single type - the message. All messages, contacts and topics must be uniquely identified by a single data type - the ID.
+
+\item \textbf{Easy to use}: like Twitter and Skype the initial concept must be easy to understand for a user of these platforms, and likewise so must the user experience.
+
+\item \textbf{Topic-enabled}: messages must be able to be categorised under multiple topics using tags, and distributed to those who are interested.
+
+\item \textbf{Threaded}: threaded messaging must be inbuilt, wherein messages can be in reply to other messages, and descend from a common root (a thread)
+
+\item \textbf{Privacy-enabled}: messages must be able to be marked as private, whereby only nodes who they are addressed to can read it
+
 \item \textbf{Secure}: the authenticity, integrity, and completeness of content sent within the network must be preserved by the system and independently verifiable by nodes. Replay attacks must be defended against. Forward secrecy must be ensured for private messages.
-\item \textbf{Simple}: the content distributed by the system should be contained within a single type - the message. All messages, contacts, topics should be uniquely identified by a single data type - the ID.
-\item \textbf{Lightweight}: messages distributed by nodes should not exceed 256 bytes. 
-\item \textbf{Topic-enabled}: messages should be able to be categorised under topics using tags.
-\item \textbf{Threaded}: threaded messaging should be inbuilt, wherein messages can be in reply to other messages, and descend from a common root (thread)
-\item \textbf{Privacy-enabled}: messages should be able to be marked as private, whereby only nodes who they are addressed to (if any) can read it
-\item \textbf{Autonomous}: a user should simply require to input the details of a bootstrap node (IP address, contact address) to facilitate application function.
 \end{enumerate}
 
-While this paper describes a collection of concepts, it is implementation independent. However it must be noted that although the design was very important, the implementation of the autonomous setup objective was equally significant.
+\section{Contacts and Messages}
+At the core of \textit{BitWeav} are contacts and messages. Contacts are the users who access the \textit{BitWeav} network, and messages are the basis of their communications.
 
+\subsection{Contacts}
+A contact is a generic term for machines and users accessing the \textit{BitWeav} network. Contacts authenticate using their 384 bit elliptic curve public/private keypair. They are identified by the computation of an identification function (described below) over the public key. Since the public key is mathematically bound to the private key, this process makes forging an address infeasible.
 
-\section{Messages}
-We define a message to be a generic container for micro-content. Micro-content is the basis of the micro-publishing idea: when content is small, it introduces constraints on users to relay more information into fewer words.  
+The network operation of contacts is described in chapters 6 and 7.
 
-The bulk of the message is the payload. The payload is 160 bytes in size, and is interpreted as an array of UTF-8 characters. UTF-8 was chosen as the encoding, as it is a standardised format that has wide usage on the Web and has sufficient support for other alphabets. The 160 character limit was chosen because it has shown sufficient for expressing ideas (text messages, Twitter tweets) in threaded communications. 
+\subsection{Messages}
+A message is a generic container for micro-content. Micro-content is the basis of the micro-publishing idea: when content is small, it introduces constraints on users to relay more information into fewer words.
 
-Within the payload, multiple tags can be defined that correspond to the topics that the message belongs to. Like Twitter tweets and IRC channels, tags are identified by a hash and delimited by spaces. The payload may contain multiple tags.
+The bulk of the message is the content. The content is a maximum of 160 bytes in size and is interpreted as an array of UTF-8 characters. UTF-8 was chosen as the encoding, as it is a standardised format that has wide usage on the Web and has sufficient support for other alphabets. The 160 character limit (for Western alphabets) was chosen because it has shown sufficient for expressing ideas (text messages, Twitter 'tweets') in threaded communications. 
 
+The content can contain two types of markup: hashtags and URIs. Hashtags, which are space-delimited strings that begin with a hash '\#', are used to identify topics that a message is associated with. A message may have multiple hashtags. The other form of markup supported are links, which are URIs which can be used to link to web pages and torrents (using the magnet URI scheme). In both cases Weav will automatically create a clickable link to the tag or the URI.
 
-\section{Contacts}
-I define a contact to be a generic term that encompasses machines and users accessing the BitWeav network. Contacts sign and perform other operations using their 384 bit elliptic curve public/private keypair. In comparison to AES, this keysize is what is recommended by the government for highly sensitive data [CITE].
-
-For the overlay network, there is a necessity for unique keys amongst clients. The key or ID of the node is the identification function (described below) computed over the public key. Since the public key is mathematically bound to the private key, this process makes forging an address infeasible.
-
+These features alone provide something similar to Twitter tweets and IRC messages, but lack any structure to the conversation. Before I explain how threads are implemented, I must first describe how they are identified - the ID.
 
 \section{Identification}
-As a requirement of the 'simple' objective, we should have a single system of identification for contacts, messages and topics - the ID. I define the ID of these types to be the hash of their content. The ID is 224 bits in size and is computed using the SHA2-224 hash algorithm.
+As a requirement of the 'simple' objective, we must have a single system of identification for contacts, messages and topics. I define a type called the ID to identify all of these items. 
+
+The ID is computed differently for different items, but the key principle is that it relies on a hash function. I employ the 224 bit function of the SHA-2 family. A contact is identified by the hash of their public key. A message is identified by the hash of its content. A topic is identified by the hash of its hashtag (including the hash). 
 
 I employ SHA2-224 mainly because of its security and efficiency. As of April 2013, the feasibility of a hash collision is negligible. In contrast, the SHA1 family has had numerous significant attacks and is slower to compute. Finally, SHA3 is yet to be standardised. 
 
+Now that I have described the ID, I can move on to how threading is described.
 
 \section{Threading}
-A message may optionally contain a 'reply' field, which stores the ID of the message it is in reply to. This field facilitates the reply mechanism of Twitter, but does not work well in group conversations (IRC, Skype) where message threads may span multiple periods of time, and thus would require a long-running identification token to listen for.
+There are two aspects to the threading of messages. The first is reply-based threading wherein a message is in response to another, which is what Twitter facilitates. The counterpart is group-based threading, wherein messages are part of a specific item of discussion on a topic - a thread. \textit{IRC} can be seen to support group-based threading, whereby each channel is a thread of messages. \textit{BitWeav} aims to support both of these. 
 
-With this issue in mind, it is necessary to introduce the 'root' field, which identifies the original message that started the thread. The root field is  optional when the reply field is included (the reply is assumed to be the root), and ignored if no reply field exists.
+As each message can be identified using its ID, it is simply to implement reply-based threading. I define a field \emph{reply}, which maps to the ID of the message one is in reply to. There can only be one reply. 
 
+The other type is group-based threading. In \textit{IRC} conversations, we have channels, which list a multitude of replies in a thread in chronological order. The model I described allows for a lossy form of discussion, but how would this channel concept be implemented? 
 
-\section{Privacy}
-Private messaging, whether it be between individuals or groups, is achieved using a private field. Since we assume a secured transport layer (see \textit{Overlay network}), it is only necessary to include a field to distinguish between the visibility of messages. A node should not forward a message that has the private field set. 
+Firstly I define another field called the \emph{root}, which maps to the ID of the original stimulus message for that conversation. When a node sends a message to a channel, they broadcast on the channel's topic. However this does not allow us to distinguish messages intended for a channel from normal microblogging 'noise'. Instead, we only listen for messages that are on a particular thread. 
 
+This leaves us with only one problem, which is that of message ordering. The \emph{reply} field aids to develop a lossy ordering of messages. When we receive a message on the topic and thread we are listening on, we append it to the conversation thread according to which message it was in reply to. This allows for a lossy decentralised ordering of messages, but it is susceptible to nodes injecting messages into older parts of the chain. To guard against this, we employ a rolling metric to decide whether a message is recent enough: as the time differences between messages becomes smaller (and network synchronisation becomes harder), the accepted range for recent messages becomes larger. 
 
-\section{Overlay network}
-The overlay network that this design assumes requires the following features:
-\begin{itemize}
-\item A bootstrap mechanism, to find nodes.
-\item A publish mechanism, whereby messages are broadcast to interested nodes according to a topic (of type ID).
-\item A subscribe mechanism, whereby a contact requests nodes to forward it messages on a topic.
-\item A message retrieval mechanism, to get recent messages. 
-\end{itemize}
-
-We base our overlay network design on a topic-based P2P publish/subscribe architecture called PolderCast. Within Poldercast, nodes form rings according to topics that they subscribe to. 
-
-We use an RPC framework to provide the following functions:
-\begin{itemize}
-\item PEER_SAMPLE:
-\item  
-\item PUBLISH
-\item SUBSCRIBE
-\item RECENT: to get recent messages distributed on a topic
-\item SEARCH: to get particular messages and their subsequent replies
-\end{itemize}
-
-
-
-\section{Synchronisation}
 Due to the peer-to-peer nature of the overlay network, group messaging may be impeded by messages not being sent - unintentionally or on purpose. When we receive a message that is in reply to another message we have no record of, we contact the sending node to get the message. If the node does not respond, we discard their message. This method dissuades spammers from sending messages with falsified reply fields, as they will be flooded with queries. 
 
+In this section I have outlined two optional fields: the 'reply' and 'root' fields. These fields can be used to implement traditional threaded conversation, like that found in IRC channels and Twitter replies.
 
-\section{Profiles}
-To aid in ease of use, we impose an address book and a subscription set. An address book stores pseudonym+contact pairs. A subscription set stores node identifiers. We assume that nodes who store eachother in their address books communicate frequently, and thus would benefit eachother by storing a backup of their information on eachothers 
+\section{Security}
+\section{Overlay Network}
+\section{Operations}
+\section{Private Messaging}
 
-
-\section{Implementation}
-\subsection{Authentication}
-One of the main issues with Retroshare and the like, is the need to transfer public/private keys. Cryptographic keypairs are not user-friendly, at least not for communications. In Bitcoin, users have adapted, but this is only because they are used less frequently than in social applications. What was needed was a user friendly motif of device-independent identification. 
-
-In BitWeav I have taken an approach originally based on Bitcoin brainwallets. In BitWeav, every contact is authenticated by a public/private keypair, in comparison to social services whereby a username/password combination is used. As of current, we do not have a solution to providing the latter in a P2P manner. However we can provide a global identification mechanism by generating the private key using the hash of the username/password combination. 
-
-There is an issue of nodes bruteforcing the private key. To guard against this, I employ firstly a password hashing algorithm (scrypt) to slow the process. The other thing I do is use the username in conjunction with the password, which guards against malicious nodes 'grabbing' many accounts from different users by simply bruteforcing common passwords. 
-
-\subsection{Interface}
-We host an open-source web application on weav.co. Users access the website through weav.co, which has a Cache Manifest to enable offline use. This allows users to access it by the familiar weav.co regardless of their Internet connection. 
-
-We use the DataChannel aspect of WebRTC to facilitate the overlay network.  Bootstrapping is achieved by connecting to a list of known nodes.
-
-The user interface is built using the Bootstrap framework and AngularJS. 
-
-\subsection{Ease of use}
-Web application. The web application splits messages into three views, with an additional filter field to show messages on a particular topic. These views are: disorganised, reply and thread. 
-
-We employ third-party STUN servers to facilitate magnificently easy setup. 
-
-\section{Future work}
-
-
-Likewise, when this design is fully implemented, we intend to incorporate realtime audio/video call functionality, being the other significant aspect of WebRTC.
+\section{Conclusion}
 
 \end{document}
