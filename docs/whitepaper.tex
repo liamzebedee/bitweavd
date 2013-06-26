@@ -7,7 +7,7 @@
 \usepackage{varioref}
 \author{Liam Edwards-Playne \textless liamz.co\textgreater}
 \date{June 1, 2013}
-\title{bitWeav - a web application for scalable decentralised peer-to-peer  communications}
+\title{bitWeav — a web application for scalable decentralised peer-to-peer  communications}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -32,7 +32,7 @@ In this paper I describe both the theory of \textit{bitWeav} and its web-based i
 
 \item \textbf{Open}: we must rely totally on open technologies and likewise publish all concepts/implementations under a fair license.
 
-\item \textbf{Simple}: the theory and implementation must be as simple as possible. the content distributed by the system must be contained within a single type - the message. All messages, contacts and topics must be uniquely identified by a single data type - the ID.
+\item \textbf{Simple}: the theory and implementation must be as simple as possible. the content distributed by the system must be contained within a single type — the message. All messages, contacts and topics must be uniquely identified by a single data type — the ID.
 
 \item \textbf{Easy to use}: like Twitter and Skype the initial concept must be easy to understand for a user of these platforms, and likewise so must the user experience.
 
@@ -52,7 +52,7 @@ In this paper I describe both the theory of \textit{bitWeav} and its web-based i
 At the core of \textit{bitWeav} are contacts and messages. Contacts are the users who access the \textit{bitWeav} network, and messages are the basis of their communications.
 
 \subsection*{Contacts}
-A contact is a generic term for machines and users accessing the \textit{bitWeav} network. Contacts authenticate using their 512 bit elliptic curve \textbf{public/private key-pair}. They are identified by the computation of an identification function (described below) over the public key. Since the public key is mathematically bound to the private key, this process makes forging an address infeasible.
+A contact is a generic term for machines and users accessing the \textit{bitWeav} network. Contacts authenticate using their 512 bit elliptic curve \textbf{public/private key-pair}. They are identified by the computation of an identification function (described below) over the public key, which is referred to as their address. Since the public key is mathematically bound to the private key, this process makes forging an address infeasible.
 
 The network operation of contacts is described in chapter~\ref{network}.
 
@@ -65,21 +65,28 @@ The content can contain two types of markup: \textbf{hashtags} and \textbf{URIs}
 
 Finally all messages include a \textbf{from} field, which is the public key
 
-These features alone provide something similar to Twitter tweets and IRC messages, but \textbf{lack any structure to the conversation}. Before I explain how threads are implemented, I must first describe how they are identified - the ID.
+These features alone provide something similar to Twitter tweets and IRC messages, but \textbf{lack any structure to the conversation}. Before I explain how threads are implemented, I must first describe how they are identified — the ID.
 
 \section{Identification}
 \label{id}
 As a requirement of the \emph{simple} objective, we must have a single system of identification for contacts, messages and topics. I define a type called the \textbf{ID} to identify all of these items. 
 
-The ID is computed differently for different items, but the key principle is that it \textbf{relies on a hash function}. I employ the 224 bit function of the SHA-2 family. A contact is identified by the hash of their public key. A message is identified by the hash of itself (except the signature, which we describe in chapter~\ref{security}). A topic is identified by the hash of its hashtag (including the hash). 
+The purpose of the ID is to provide a unique fixed-size identifier for a contact, message or hashtag. I employ the Bitcoin address generation algorithm\cite{btcAddr}, as it has shown to provide a simplistic and secure identification format. It is detailed as follows:
+\begin{enumerate}
+\item Having some arbitrary array of data as input to the ID function — the content.
+\item Perform SHA2-256 hashing on the content.
+\item Perform RIPEMD-160 hashing on the result of the SHA2-256.
+\item Prepend the version byte 0x49 to the RIPEMD-160 hash.
+\item Perform a double SHA2-256 hashing on the extended RIPEMD-160 result.
+\item Append the first 4 bytes of the double SHA2-256 hashing (the checksum) to the extended RIPEMD-160 hash.
+\item Optionally encode in Base58 for human representation. 
+\end{enumerate}
 
-I employ SHA2-224 mainly because of its security and efficiency. As of April 2013, the feasibility of a hash collision is negligible. In contrast, the SHA1 family has had numerous significant attacks and is slower to compute. Finally, SHA3 is yet to be standardised. 
-
-Now that I have described the ID, I can move on to how threading is described.
+Firstly for \textbf{contacts}, the ID is computed over the contact's public key. For \textbf{messages}, the ID is computed over the message's content (excluding the signature, which I describe in chapter~\ref{security}). Lastly for \textbf{topics} the ID is computed over the hashtag itself.
 
 \section{Threading}
 \subsection*{Reply-based threading}
-There are two aspects to the threading of messages. The first is \textbf{reply-based threading} wherein a message is in response to another, which is what Twitter facilitates. The counterpart is \textbf{group-based threading}, wherein messages are part of a specific item of discussion on a topic - a thread. \textit{IRC} can be seen to support group-based threading, whereby each channel is a thread of messages. \textit{bitWeav} aims to support both of these. 
+There are two aspects to the threading of messages. The first is \textbf{reply-based threading} wherein a message is in response to another, which is what Twitter facilitates. The counterpart is \textbf{group-based threading}, wherein messages are part of a specific item of discussion on a topic — a thread. \textit{IRC} can be seen to support group-based threading, whereby each channel is a thread of messages. \textit{bitWeav} aims to support both of these. 
 
 As each message can be identified using its ID, it is simply to implement reply-based threading. I define a field \textbf{reply}, which maps to the ID of the message that one is in reply to. There can only be one reply. 
 
@@ -90,7 +97,7 @@ Firstly I define another field called the \textbf{root}, which maps to the ID of
 
 This leaves us with only one problem, which is that of message ordering. The \emph{reply} field aids to develop a lossy ordering of messages. When we receive a message on the topic and thread we are listening on, we append it to the conversation thread according to which message it was in reply to. This allows for a lossy decentralised ordering of messages, but it is susceptible to nodes injecting messages into older parts of the chain. To guard against this, we employ a rolling metric to decide whether a message is recent enough: as the time differences between messages becomes smaller (and network synchronisation becomes harder), the accepted range for recent messages becomes larger. 
 
-Due to the peer-to-peer nature of the overlay network, group messaging may be impeded by messages not being sent - unintentionally or on purpose. When we receive a message that is in reply to another message we have no record of, we contact the sending node to get the message. If the node does not respond, we discard their message. This method dissuades spammers from sending messages with falsified reply fields, as they will be flooded with queries. 
+Due to the peer-to-peer nature of the overlay network, group messaging may be impeded by messages not being sent — unintentionally or on purpose. When we receive a message that is in reply to another message we have no record of, we contact the sending node to get the message. If the node does not respond, we discard their message. This method dissuades spammers from sending messages with falsified reply fields, as they will be flooded with queries. 
 
 In this section I have outlined two optional fields: the 'reply' and 'root' fields. These fields can be used to implement traditional threaded conversation, like that found in IRC channels and Twitter replies.
 
@@ -115,51 +122,37 @@ The topic-based publish/subscribe communication system is organized around a set
 
 Each module maintains a node table called the \textbf{view}, wherein details for contacting nodes are contained and annotated by an age value. Whenever we send a message from any module, we increment the age value of all nodes. Whenever a node gossips with another  neighbour $Q$, it temporarily removes $Q$ from the respective module’s view, anticipating that it will respond and will be inserted anew. A node always selects to gossip with its oldest neighbour.
 
-Lastly, we maintain two variables for each module: the view size and gossip size. The \textbf{view size} defines the maximum number of neighbours to maintain, and is normally 20. The \textbf{gossip size} defines the maximum number of neighbours to be included in a gossip message, and is by default 20.
+Lastly, we maintain two variables for each module: the view size $V$ and gossip size $G$. The \textbf{view size} defines the maximum number of neighbours to maintain, and is normally 20. The \textbf{gossip size} defines the maximum number of neighbours to be included in a gossip message, and is by default 20.
 
 The network is based on a relatively small set of functions that provides for overlay network maintenance, message distribution and message retrieval.
 
 \subsection*{Network Maintenance}
-As briefly mentioned, we have three modules, each with their own gossiping protocol. 
+As briefly mentioned, we have three modules, each with their own gossiping protocol. Each module's gossiping protocol is based on the concept of a shuffle, a process whereby nodes initiate neighbour exchanges periodically, yet not synchronized, at a fixed period $T$. I describe this shuffling process for each module for an initiating node $P$. 
 
 \subsubsection*{Cyclon}
-\subsubsection*{Vicinity}
-\subsubsection*{Rings}
+This module operates at the lowest-level, being situated just above the layer where communications take place. It forms an overlay and maintains random links between nodes using an epidemic algorithm. Each peer knows a small, continuously changing set of other peers, called its neighbours, and occasionally contacts one to exchange some of their neighbours.
 
-I define three RPCs in this category: \textbf{gossipCyclon}, \textbf{gossipVicinity} and \textbf{gossipRings}. Each RPC serves the purpose of exchanging nodes relevant to its module, and are described in my design outline.
-
-\subsection*{Message Distribution}
-There are three categories of topics that nodes may publish/subscribe to, each being identified by an ID as described in chapter~\ref{id}:
+\paragraph*{Shuffling}
 \begin{enumerate}
-\item Hashtags
-\item Threads
-\item Contact feeds
+\item Select a neighbour $Q$ with the highest age among all neighbours, and a subset of $G-1$ other neighbours.
+\item Replace $Q$'s entry with a new entry of age 0 and with $P$'s details.
+\item Send the updated subset to $Q$.
+\item Receive from $Q$ a subset of $G$ entries.
+\item Discard entries pointing at $P$ and nodes that $P$ already knows of.
+\item Verify entries are valid by establishing a connection to such nodes and discard any invalid entries.
+\item Update $P$'s view to include all remaining entries, by firstly using empty slots (if any) and secondly replacing entries among the ones sent to $Q$.
 \end{enumerate}
 
-The \textbf{publish} RPC contains a message object and provides a simple mechanism for distributing messages independent of the message's author.
+On reception of a shuffling query a node $Q$ replies by sending back a random subset of at most of $G$ its neighbours, and updates its own view to accommodate all received entries. 
 
-Unlike other publish/subscribe systems, there is no explicit protocol for subscription to a topic. Instead, by being part of the overlay and exchanging interests as part of the \emph{VICINITY} and \emph{RINGS} modules, nodes receive messages. 
+It must be noted that this is susceptible to entry forgery, wherein the contact details of a node can be forged
 
-\subsection*{Message Retrieval}
-Finally there is the message retrieval. The volume of messages that nodes store is implementation-dependent, but the protocol has certain bounds on when a message must be stored even temporarily. 
-
-For example, when a node is listening in on a thread, and a node sends it a message in reply to another message that the listening node has no record of, it will request that message from the sending node. In this circumstance, if the node is publishing messages but does not have the message it is in reply to, it will be dropped.
-
-The function a node will use to request a specific message, perhaps in a circumstance when they may have missed a message on a thread, is the \textbf{getMessage} RPC. This requires only a message ID and returns the message. 
-
-The other function a node might use when they have recently rejoined the network and are looking for recent updates on topics is the \textbf{getRecent} RPC. This RPC takes an ID of a topic and returns a list of relevant messages.
-
-\section{Private Messaging}
-The final aspect to the message is its privacy. We wish to keep messages secure from the nodes who it is not addressed to: to this we need a mechanism whereby we can check if a message is private.
-
-To maintain the simple objective, we use the same distribution architecture for private messages, but modified as only to distribute to certain peers. 
-
-\section{Operations}
+\subsubsection*{Vicinity}
 
 
-\section{Implementation}
-\label{impl}
+\subsubsection*{Rings}
 
+Failure of a node to respond results in them being removed from the module's view.
 
 \section{Conclusion}
 

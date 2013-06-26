@@ -2,3 +2,8 @@
 	title={PolderCast Design Outline},
 	note={\url{liamz.co}}
 }
+
+@article{btcAddr,
+	title={Technical background of version 1 Bitcoin addresses},
+	note={\url{https://en.bitcoin.it/wiki/Technical_background_of_Bitcoin_addresses}}
+}
