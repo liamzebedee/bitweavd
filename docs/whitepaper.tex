@@ -40,11 +40,11 @@ In this paper I describe both the theory of \textit{bitWeav} and its web-based i
 
 \item \textbf{Threaded}: threaded messaging must be inbuilt, wherein messages can be in reply to other messages, and descend from a common root (a thread)
 
-\item \textbf{Privacy-enabled}: private distribution of messages must be supported, whereby only specific contacts will receive messages on a specific topic.
+\item \textbf{Privacy-enabled}: private distribution of messages must be supported, whereby only specific contacts will receive messages on a specific topic. These private conversations should pertain to the off-the-record messaging protocol. 
 
 \item \textbf{Media-enabled}: contacts must be able to communicate through other mediums like video and audio. 
 
-\item \textbf{Secure}: the authenticity, integrity, and completeness of content sent within the network must be preserved by the system and independently verifiable by nodes. Replay attacks must be defended against. Forward secrecy must be ensured for private messages.
+\item \textbf{Secure}: the authenticity, integrity, and completeness of public content sent within the network must be preserved by the system and independently verifiable by nodes. Replay attacks must be defended against. Forward secrecy must be ensured for private messages.
 \end{enumerate}
 
 \section{Contacts and Messages}
@@ -68,6 +68,7 @@ Finally all messages include a \textbf{from} field, which is the public key
 These features alone provide something similar to Twitter tweets and IRC messages, but \textbf{lack any structure to the conversation}. Before I explain how threads are implemented, I must first describe how they are identified - the ID.
 
 \section{Identification}
+\label{id}
 As a requirement of the \emph{simple} objective, we must have a single system of identification for contacts, messages and topics. I define a type called the \textbf{ID} to identify all of these items. 
 
 The ID is computed differently for different items, but the key principle is that it \textbf{relies on a hash function}. I employ the 224 bit function of the SHA-2 family. A contact is identified by the hash of their public key. A message is identified by the hash of itself (except the signature, which we describe in chapter~\ref{security}). A topic is identified by the hash of its hashtag (including the hash). 
@@ -93,28 +94,68 @@ Due to the peer-to-peer nature of the overlay network, group messaging may be im
 
 In this section I have outlined two optional fields: the 'reply' and 'root' fields. These fields can be used to implement traditional threaded conversation, like that found in IRC channels and Twitter replies.
 
-\section{Private Messaging}
-The final aspect to the message is its privacy. We wish to keep messages secure from the nodes who it is not addressed to: to this we need a mechanism whereby we can check if a message is private easily, identify whether the message is addressed to us, and if so decrypt its contents by getting a contact-specific key from an algorithm-generic  field in the message.
-
-To maintain the simple objective, we use the same distribution architecture for private messages, but modified as only to distribute to certain peers. This maintains the scalability. 
-
 \section{Security}
 \label{security}
 A principle objective of \textit{bitWeav} is to be secure and idea that security should be ubiquitous is fundamental to its design.
 
 The first objective was that of transport security: nodes communicate via a secure transport protocol to preserve the authenticity, integrity, and completeness of data sent within the network. This is further described in chapter~\ref{impl}. 
 
-The second is that of message authenticity. As discussed in chapter~\ref{ContactsAndMessages}, all contacts have an elliptic curve key-pair. Nodes use ECDSA with SHA-224 to sign their all of their messages, which is attached in the \textbf{signature} field. Because of this, any node can forward a message to others, which is an essential feature of \textit{Weav}'s message distribution strategy.
+The second is that of message authenticity. As discussed in chapter~\ref{ContactsAndMessages}, all contacts have an elliptic curve key-pair. Nodes use ECDSA with SHA-256 to sign their all of their messages, which is attached in the \textbf{signature} field. Because of this, any node can forward a message to others, which is an essential feature of \textit{Weav}'s message distribution strategy.
 
 \section{Overlay Network}
 \label{network}
-The overlay network focuses on scalability. I employ a novel overlay network design that is orientated towards a publish-subscribe mechanism, called PolderCast.
+The overlay network focuses on scalability. I employ a novel overlay network design that is orientated towards a publish-subscribe mechanism, called PolderCast. I will firstly outline the design of PolderCast and then describe my modifications to it.
 
-I've fully outlined the design of PolderCast in a separate document\cite{PolderCastDesignOutline}, but I will describe the basics here as I have modified the design slightly to facilitate private messaging.
+\subsection*{PolderCast}
+The Poldercast overlay consists of three layered network modules: \emph{CYCLON}, \emph{VICINITY} and \emph{RINGS}. Each module maintains its own view, managed by a separate gossiping protocol, which gossips periodically, asynchronously, and independently from the other two modules.
 
-Nodes communicate using a custom-built RPC framework discussed in chapter~\ref{impl}. The network is based on a relatively small set of functions that provides for overlay network maintenance, message distribution and message retrieval. 
+The system consists of an overlay network wherein nodes communicate using an RPC framework discussed in chapter ~\ref{impl}. Each node in the overlay network has a unique identifier, which is assumed to be sortable and to occupy a circular value space. PolderCast assumes that the underlying communication network is fully connected, in the sense that any node can send a message to any other node, provided it knows its contact details. 
+
+The topic-based publish/subscribe communication system is organized around a set of topics, each having a separate unique identifier. Each node can play the role of a subscriber or publisher or both.
+
+Each module maintains a node table called the \textbf{view}, wherein details for contacting nodes are contained and annotated by an age value. Whenever we send a message from any module, we increment the age value of all nodes. Whenever a node gossips with another  neighbour $Q$, it temporarily removes $Q$ from the respective module’s view, anticipating that it will respond and will be inserted anew. A node always selects to gossip with its oldest neighbour.
+
+Lastly, we maintain two variables for each module: the view size and gossip size. The \textbf{view size} defines the maximum number of neighbours to maintain, and is normally 20. The \textbf{gossip size} defines the maximum number of neighbours to be included in a gossip message, and is by default 20.
+
+The network is based on a relatively small set of functions that provides for overlay network maintenance, message distribution and message retrieval.
+
+\subsection*{Network Maintenance}
+As briefly mentioned, we have three modules, each with their own gossiping protocol. 
+
+\subsubsection*{Cyclon}
+\subsubsection*{Vicinity}
+\subsubsection*{Rings}
+
+I define three RPCs in this category: \textbf{gossipCyclon}, \textbf{gossipVicinity} and \textbf{gossipRings}. Each RPC serves the purpose of exchanging nodes relevant to its module, and are described in my design outline.
+
+\subsection*{Message Distribution}
+There are three categories of topics that nodes may publish/subscribe to, each being identified by an ID as described in chapter~\ref{id}:
+\begin{enumerate}
+\item Hashtags
+\item Threads
+\item Contact feeds
+\end{enumerate}
+
+The \textbf{publish} RPC contains a message object and provides a simple mechanism for distributing messages independent of the message's author.
+
+Unlike other publish/subscribe systems, there is no explicit protocol for subscription to a topic. Instead, by being part of the overlay and exchanging interests as part of the \emph{VICINITY} and \emph{RINGS} modules, nodes receive messages. 
+
+\subsection*{Message Retrieval}
+Finally there is the message retrieval. The volume of messages that nodes store is implementation-dependent, but the protocol has certain bounds on when a message must be stored even temporarily. 
+
+For example, when a node is listening in on a thread, and a node sends it a message in reply to another message that the listening node has no record of, it will request that message from the sending node. In this circumstance, if the node is publishing messages but does not have the message it is in reply to, it will be dropped.
+
+The function a node will use to request a specific message, perhaps in a circumstance when they may have missed a message on a thread, is the \textbf{getMessage} RPC. This requires only a message ID and returns the message. 
+
+The other function a node might use when they have recently rejoined the network and are looking for recent updates on topics is the \textbf{getRecent} RPC. This RPC takes an ID of a topic and returns a list of relevant messages.
+
+\section{Private Messaging}
+The final aspect to the message is its privacy. We wish to keep messages secure from the nodes who it is not addressed to: to this we need a mechanism whereby we can check if a message is private.
+
+To maintain the simple objective, we use the same distribution architecture for private messages, but modified as only to distribute to certain peers. 
 
 \section{Operations}
+
 
 \section{Implementation}
 \label{impl}
