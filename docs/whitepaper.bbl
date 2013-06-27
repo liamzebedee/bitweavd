@@ -1,9 +1,16 @@
-@article{PolderCastDesignOutline
-	title={PolderCast Design Outline},
-	note={\url{liamz.co}}
-}
+\begin{thebibliography}{1}
 
-@article{btcAddr,
-	title={Technical background of version 1 Bitcoin addresses},
-	note={\url{https://en.bitcoin.it/wiki/Technical_background_of_Bitcoin_addresses}}
-}
+\bibitem{btcAddr}
+Technical background of version 1 bitcoin addresses.
+\newblock
+  \url{https://en.bitcoin.it/wiki/Technical_background_of_Bitcoin_addresses}.
+
+\bibitem{poldercast}
+Vinay Setty, Maarten van Steen, Roman Vitenberg, and Spyros Voulgaris.
+\newblock Poldercast: fast, robust, and scalable architecture for p2p
+  topic-based pub/sub.
+\newblock In {\em Proceedings of the 13th International Middleware Conference},
+  Middleware '12, pages 271--291, New York, NY, USA, 2012. Springer-Verlag New
+  York, Inc.
+
+\end{thebibliography}

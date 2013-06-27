@@ -1,3 +1,14 @@
+% bitWeav whitepaper
+% Written entirely by Liam (liamzebedee) Edwards-Playne.
+% Licensed under Attribution-ShareAlike 3.0 Unported
+% https://creativecommons.org/licenses/by-sa/3.0/
+
+% Notes on formatting:
+%  definitions of fields are bolded
+%  reference to fields are emphasised
+%  names of things are italicised
+
+
 \documentclass[10pt,a4paper,onecolumn]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
@@ -5,9 +16,10 @@
 \usepackage{amssymb}
 \usepackage{url}
 \usepackage{varioref}
+\usepackage{enumerate}
 \author{Liam Edwards-Playne \textless liamz.co\textgreater}
 \date{June 1, 2013}
-\title{bitWeav — a web application for scalable decentralised peer-to-peer  communications}
+\title{bitWeav — scalable decentralised peer-to-peer communications}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -15,18 +27,20 @@
 
 \section{Introduction}
 \label{intro}
-In the last half-decade we have seen how the microblogging atmosphere of \emph{Twitter} has proven the value of online communication. The fundamental principle of microblogging, which is the compacting of ideas into 140 characters, has sparked a revolution in how we communicate. Users could spark a conversation on topics (tags) with strangers, discussing anything and everything in real-time. Through trending topics, this public yet often concealed discussion platform which is online communication could give rise to the sharing of influential ideas and the stirring of the masses. We could see this in events such as the Egyptian Revolution of 2011 and Occupy Wall Street. Such an invaluable resource must be kept sustainable, but we have seen that due to the centralised nature of this tool, as well as its issues with corporate control, there is a need for an alternative. 
+In the last half-decade we have seen how the microblogging atmosphere of \textit{Twitter} has proven the value of online communication. The fundamental principle of microblogging, which is the compacting of ideas into 140 characters, has sparked a revolution in how we communicate. Users could spark a conversation on topics (tags) with strangers, discussing anything and everything in real-time. Through trending topics, this public yet often concealed discussion platform which is online communication could give rise to the sharing of influential ideas and the stirring of the masses. We could see this in events such as the Egyptian Revolution of 2011 and Occupy Wall Street. Such an invaluable resource must be kept sustainable, but we have seen that due to the centralised nature of this tool, as well as its issues with corporate control, there is a need for an alternative. 
 
-A similar, older and more sustainable platform is \emph{IRC}. Like \emph{Twitter}, \emph{IRC} facilitated public text-based discussion on topics (channels). It had its advantages and disadvantages as it used a moderator-based group discussion device called a channel, but the user bases of such were fragmented across differing \emph{IRC} networks. Nonetheless, its more advanced organised discussion led to it becoming the key communications tool for 'hackers'. Hackers found the setup requiring minimum personal details, in combination with the simplistic and programmable interface which is the \emph{IRC} protocol, allowed for high-quality discussions that focused on the content. 
+A similar, older and more sustainable platform is \textit{IRC}. Like \textit{Twitter}, \textit{IRC} facilitated public text-based discussion on topics (channels). It had its advantages and disadvantages as it used a moderator-based group discussion device called a channel, but the user bases of such were fragmented across differing \textit{IRC} networks. Nonetheless, its more advanced organised discussion led to it becoming the key communications tool for 'hackers'. Hackers found the setup requiring minimum personal details, in combination with the simplistic and programmable interface which is the \textit{IRC} protocol, allowed for high-quality discussions that focused on the content. 
 
-Finally there was \emph{Skype}. The unique feature of Skype was its alternate method of communication — video chat. It allowed individuals to talk privately and securely with ease. Perhaps the most significant but relatively unknown aspect of \emph{Skype} was its decentralised and peer-to-peer network architecture. Although \emph{Skype} wasn't truly decentralised, it did show that service could be improved through such a system. Alas after the acquisition by \textit{Microsoft}, the platform headed downhill, instead revoking the previous security and decentralised nature of the application in favour of centralisation. Users could no longer rely on the simple yet secure platform which it had a strong image for, and have been lost in a myriad of alternatives since. 
+% TODO this is a bit too emotive
+Finally there was \textit{Skype}. The unique feature of \textit{Skype} was its alternate method of communication — video chat. It allowed individuals to talk privately and securely with ease. Perhaps the most significant but relatively unknown aspect of \textit{Skype} was its decentralised and peer-to-peer network architecture. Although \textit{Skype} wasn't truly decentralised, it did show that service could be improved through such a system. Alas after the acquisition by \textit{Microsoft}, the platform headed downhill, instead revoking the previous security and decentralised nature of the application in favour of centralisation. Users could no longer rely on the simple yet secure platform which it had a strong image for, and have been lost in a myriad of alternatives since. 
 
-One such alternative I have come across was \emph{BitMessage}. \emph{BitMessage} is a text-based communications protocol that rivals email, relying on a decentralised network of nodes to provide a peer-to-peer communications platform that is secure and easy to use. I commend the author of the application on these features and the effort it had taken to construct such a project, but despite these things the protocol had numerous faults. Its broadcast mechanism which resembled a gossip protocol was not to be desired. There had also been numerous reported vulnerabilities, but these extend the scope of my interest. I set out to build an alternative, that would combine the features of \emph{Twitter}, \emph{IRC} and \emph{Skype}, while retaining the sustainable nature of \emph{Bitmessage}. It was to be an experiment in decentralised peer-to-peer innovation.
+One such alternative I have come across was \textit{Bitmessage}. \textit{Bitmessage} is a text-based communications protocol that rivals email, relying on a decentralised network of nodes to provide a peer-to-peer communications platform that is secure and easy to use. I commend the author of the application on these features and the effort it had taken to construct such a project, but despite these things the protocol had numerous faults. Its broadcast mechanism which resembled a gossip protocol was not to be desired. There had also been numerous reported vulnerabilities, but these extend the scope of my interest. I set out to build an alternative, that would combine the features of \textit{Twitter}, \textit{IRC} and \textit{Skype}, while retaining the sustainable nature of \textit{Bitmessage}. It was to be an experiment in decentralised peer-to-peer innovation.
 
 \section{Objectives}
+% don't talk about browser, talk about WebRTC html5 tech
 Recent innovations and technologies have brought together a feasible environment for the creation of such a solution. The introduction of in-browser peer-to-peer networking API particularly struck me as a fantastic opportunity to implement an application that was decentralised and had magnificent ease-of-use. Another significant aspect was a novel decentralised peer-to-peer publish-subscribe architecture called \textit{PolderCast}, which featured a publish-subscribe system that distributed messages only to the nodes who were interested, in a scalable manner.
 
-In this paper I describe both the theory of \textit{bitWeav} and its web-based implementation called \textit{Weav}. To guide the development of \textit{bitWeav}, I formulated a list of objectives that expressed the key features necessary for its completion.
+In this paper I describe both the theory of \textit{bitWeav} and its premier implementation called \textit{Weav}. To guide the development of \textit{bitWeav}, I formulated a list of objectives that expressed the key features necessary for its completion.
 \begin{enumerate}
 \item \textbf{Decentralised}: we must not rely on any set of nodes to provide for any other set of nodes, in the circumstances where if their connection were severed it would produce irreparable damage to the network. 
 
@@ -42,7 +56,7 @@ In this paper I describe both the theory of \textit{bitWeav} and its web-based i
 
 \item \textbf{Privacy-enabled}: private distribution of messages must be supported, whereby only specific contacts will receive messages on a specific topic. These private conversations should pertain to the off-the-record messaging protocol. 
 
-\item \textbf{Media-enabled}: contacts must be able to communicate through other mediums like video and audio. 
+\item \textbf{Media-enabled}: contacts must be able to privately communicate through other mediums like video and audio. 
 
 \item \textbf{Secure}: the authenticity, integrity, and completeness of public content sent within the network must be preserved by the system and independently verifiable by nodes. Replay attacks must be defended against. Forward secrecy must be ensured for private messages.
 \end{enumerate}
@@ -52,37 +66,37 @@ In this paper I describe both the theory of \textit{bitWeav} and its web-based i
 At the core of \textit{bitWeav} are contacts and messages. Contacts are the users who access the \textit{bitWeav} network, and messages are the basis of their communications.
 
 \subsection*{Contacts}
-A contact is a generic term for machines and users accessing the \textit{bitWeav} network. Contacts authenticate using their 512 bit elliptic curve \textbf{public/private key-pair}. They are identified by the computation of an identification function (described below) over the public key, which is referred to as their address. Since the public key is mathematically bound to the private key, this process makes forging an address infeasible.
+A contact is a generic term for machines and users accessing the \textit{bitWeav} network. Contacts authenticate using a \textbf{public/private key-pair}. They are identified by the computation of an identification function (described in ch.~\ref{id}) over the public key, which is referred to as their \textbf{address}. Since the public key is mathematically bound to the private key, this process makes forging an address infeasible.
 
 The network operation of contacts is described in chapter~\ref{network}.
 
 \subsection*{Messages}
 A \textbf{message} is a generic container for micro-content. Micro-content is the basis of the micro-publishing idea: when content is small, it introduces constraints on users to relay more information into fewer words.
 
-The bulk of the message is the \textbf{content}. The content is a maximum of 160 bytes in size and is interpreted as an array of UTF-8 characters. UTF-8 was chosen as the encoding, as it is a standardised format that has wide usage on the Web and has sufficient support for other alphabets. The 160 character limit (for Western alphabets) was chosen because it has shown sufficient for expressing ideas (text messages, Twitter 'tweets') in threaded communications. 
+The bulk of the message is the \textbf{content}. The content is a maximum of 160 bytes in size and is interpreted as an array of \textit{UTF-8} characters. \textit{UTF-8} was chosen as the encoding, as it is a standardised format that has wide usage on the Web and has sufficient support for other alphabets. The 160 character limit (for Western alphabets) was chosen because it has shown sufficient for expressing ideas (text messages, \textit{Twitter} 'tweets') in threaded communications. 
 
-The content can contain two types of markup: \textbf{hashtags} and \textbf{URIs}. Hashtags, which are space-delimited strings that begin with a hash '\#', are used to identify topics that a message is associated with. A message may have multiple hashtags. The other form of markup supported are links, which are URIs which can be used to link to web pages and torrents (using the magnet URI scheme). In both cases Weav will automatically create a clickable link to the tag or the URI.
+The content can contain two types of markup: \textbf{hashtags} and \textbf{URIs}. Hashtags, which are space-delimited strings that begin with a hash '\#', are used to identify topics that a message is associated with. A message may have multiple hashtags. The other form of markup supported are links, which are \textit{URI}s which can be used to link to resources such as web pages and torrents (using the \textit{magnet URI} scheme).
 
-Finally all messages include a \textbf{from} field, which is the public key
+The final part to the message is its authentication section, which contains two mandatory fields. The first is the \textbf{from} field, which is the public key of the publishing node. In conjunction with the second field the \textbf{signature}, which is a digital signature computed over the remainder of the message, this authenticates the author of all messages regardless of sender. Because of this, any node can forward a message to others, which is an essential feature of \textit{bitWeav}'s message distribution strategy.
 
-These features alone provide something similar to Twitter tweets and IRC messages, but \textbf{lack any structure to the conversation}. Before I explain how threads are implemented, I must first describe how they are identified — the ID.
+These features alone provide something similar to \textit{Twitter} tweets and \textit{IRC} messages, but \textbf{lack any structure to the conversation}. Before I explain how threads are implemented, I must first describe how they are identified — the \emph{ID}.
 
 \section{Identification}
 \label{id}
-As a requirement of the \emph{simple} objective, we must have a single system of identification for contacts, messages and topics. I define a type called the \textbf{ID} to identify all of these items. 
+As a requirement of the simple objective, we must have a single system of identification for contacts, messages and topics. I define a type called the \textbf{ID} to identify all of these items. 
 
 The purpose of the ID is to provide a unique fixed-size identifier for a contact, message or hashtag. I employ the Bitcoin address generation algorithm\cite{btcAddr}, as it has shown to provide a simplistic and secure identification format. It is detailed as follows:
 \begin{enumerate}
-\item Having some arbitrary array of data as input to the ID function — the content.
+\item Having some arbitrary array of data as input to the \emph{ID} function — the content.
 \item Perform SHA2-256 hashing on the content.
 \item Perform RIPEMD-160 hashing on the result of the SHA2-256.
-\item Prepend the version byte 0x49 to the RIPEMD-160 hash.
+\item Prepend the version byte 0x49 or "W" to the RIPEMD-160 hash.
 \item Perform a double SHA2-256 hashing on the extended RIPEMD-160 result.
 \item Append the first 4 bytes of the double SHA2-256 hashing (the checksum) to the extended RIPEMD-160 hash.
 \item Optionally encode in Base58 for human representation. 
 \end{enumerate}
 
-Firstly for \textbf{contacts}, the ID is computed over the contact's public key. For \textbf{messages}, the ID is computed over the message's content (excluding the signature, which I describe in chapter~\ref{security}). Lastly for \textbf{topics} the ID is computed over the hashtag itself.
+For \textbf{contacts}, the ID is computed over the contact's public key. For \textbf{messages}, the ID is computed over the message's content (excluding the signature, which I describe in chapter~\ref{security}). Lastly for \textbf{topics} the ID is computed over the hashtag itself.
 
 \section{Threading}
 \subsection*{Reply-based threading}
@@ -99,40 +113,55 @@ This leaves us with only one problem, which is that of message ordering. The \em
 
 Due to the peer-to-peer nature of the overlay network, group messaging may be impeded by messages not being sent — unintentionally or on purpose. When we receive a message that is in reply to another message we have no record of, we contact the sending node to get the message. If the node does not respond, we discard their message. This method dissuades spammers from sending messages with falsified reply fields, as they will be flooded with queries. 
 
-In this section I have outlined two optional fields: the 'reply' and 'root' fields. These fields can be used to implement traditional threaded conversation, like that found in IRC channels and Twitter replies.
+In this section I have outlined two optional fields: the reply and root fields. These  can be used to implement traditional threaded conversation, like that found in \textit{IRC} channels and \textit{Twitter} replies.
 
 \section{Security}
 \label{security}
-A principle objective of \textit{bitWeav} is to be secure and idea that security should be ubiquitous is fundamental to its design.
+A principle objective of \textit{bitWeav} is to be secure. The idea that security should be ubiquitous is fundamental to its design.
 
-The first objective was that of transport security: nodes communicate via a secure transport protocol to preserve the authenticity, integrity, and completeness of data sent within the network. This is further described in chapter~\ref{impl}. 
-
-The second is that of message authenticity. As discussed in chapter~\ref{ContactsAndMessages}, all contacts have an elliptic curve key-pair. Nodes use ECDSA with SHA-256 to sign their all of their messages, which is attached in the \textbf{signature} field. Because of this, any node can forward a message to others, which is an essential feature of \textit{Weav}'s message distribution strategy.
+Nodes must communicate via a secure transport protocol to preserve the authenticity, integrity, and completeness of data sent within the network. This is further described in chapter~\ref{impl}.
+% TODO elaborate on replay attack protections
 
 \section{Overlay Network}
 \label{network}
-The overlay network focuses on scalability. I employ a novel overlay network design that is orientated towards a publish-subscribe mechanism, called PolderCast. I will firstly outline the design of PolderCast and then describe my modifications to it.
+The principle objective of the overlay network is to \textbf{distribute messages to interested nodes in a scalable and reliable manner}, a design called a publish-subscribe system. I considered a couple of publish-subscribe systems, namely \textit{SCRIBE} and \textit{Pub2Sub}, however I found their weakness to be relying on nodes which aren't necessarily interested in certain topics (so called 'rendez-vous' nodes) to  serve the distribution of messages on that topic.
 
-\subsection*{PolderCast}
+I eventually discovered \textit{PolderCast}\cite{poldercast}, a recent publish-subscribe system from 2012 that achieves this objective. The critical advantage of PolderCast lies in its gossip-based network design that is resilient to node churn while requiring only minimal node state necessary for routing — both publishers and subscribers are allowed to join and leave at any moment, without any prior notice, due to topic subscription being implicit in the routing. It also features a layered network module design that proves useful when developing additional functions for the overlay network.
+
+In this section I will outline the design of \textit{PolderCast} and describe my modifications to it.
+
+\subsection{PolderCast}
 The Poldercast overlay consists of three layered network modules: \emph{CYCLON}, \emph{VICINITY} and \emph{RINGS}. Each module maintains its own view, managed by a separate gossiping protocol, which gossips periodically, asynchronously, and independently from the other two modules.
 
-The system consists of an overlay network wherein nodes communicate using an RPC framework discussed in chapter ~\ref{impl}. Each node in the overlay network has a unique identifier, which is assumed to be sortable and to occupy a circular value space. PolderCast assumes that the underlying communication network is fully connected, in the sense that any node can send a message to any other node, provided it knows its contact details. 
+The system consists of an overlay network wherein nodes communicate using an \textbf{RPC framework} discussed in chapter ~\ref{impl}. Each node in the overlay network has a unique identifier, which is assumed to be sortable and to occupy a circular value space. PolderCast assumes that the underlying communication network is fully connected, in the sense that any node can send a message to any other node, provided it knows its contact details. 
 
-The topic-based publish/subscribe communication system is organized around a set of topics, each having a separate unique identifier. Each node can play the role of a subscriber or publisher or both.
+The topic-based publish/subscribe communication system is organized around a set of topics. I define each \textbf{topic} as 160 bit key.
 
-Each module maintains a node table called the \textbf{view}, wherein details for contacting nodes are contained and annotated by an age value. Whenever we send a message from any module, we increment the age value of all nodes. Whenever a node gossips with another  neighbour $Q$, it temporarily removes $Q$ from the respective module’s view, anticipating that it will respond and will be inserted anew. A node always selects to gossip with its oldest neighbour.
+Each module maintains a node table called the \textbf{view}, wherein profiles for nodes of that module are contained and annotated respectively by an age value. Whenever we send a message from any module, we increment the age value of all nodes. Whenever a node gossips with another neighbour $Q$, it temporarily removes $Q$ from the respective module’s view, anticipating that it will respond and will be inserted anew. A neighbour's age is zeroed when a gossip message (or response) is received from
+that neighbour. A neighbour's age is retained also when that neighbour is handed
+from one node to another. Finally A node always selects to gossip with its oldest neighbour.
 
-Lastly, we maintain two variables for each module: the view size $V$ and gossip size $G$. The \textbf{view size} defines the maximum number of neighbours to maintain, and is normally 20. The \textbf{gossip size} defines the maximum number of neighbours to be included in a gossip message, and is by default 20.
+For any of the three modules, node $Q$ being a neighbour of node $P$ means that $P$ has a copy of $Q$'s profile in the respective module's view. A node's profile contains:
+\begin{enumerate}[i.]
+\item its network contact details.
+\item its public key, and subsequently from this its unique address (which is derived client-side).
+\item the IDs of topics the node is subscribed to, each annotated with a priority that node assigns to finding neighbours of that topic.
+\end{enumerate}
+
+The 
+The priority of a topic is determined by the number of neighbors it has in the Rings module: topics with fewer Rings neighbors are assigned higher priority. Clearly, two or more copies of a node’s profile may be different, notably when the node updates its subscriptions, or reports different priorities for its topics. When gossiping to a neighbor, a node sends a fresh copy of its profile, reflecting its current state.
+
+Lastly, I maintain two variables for each module: the view size $V$ and gossip size $G$. The \textbf{view size} defines the maximum number of neighbours to maintain, and is normally 20. The \textbf{gossip size} defines the maximum number of neighbours to be included in a gossip message, and is by default 20.
 
 The network is based on a relatively small set of functions that provides for overlay network maintenance, message distribution and message retrieval.
 
-\subsection*{Network Maintenance}
+\subsection{Network Maintenance}
 As briefly mentioned, we have three modules, each with their own gossiping protocol. Each module's gossiping protocol is based on the concept of a shuffle, a process whereby nodes initiate neighbour exchanges periodically, yet not synchronized, at a fixed period $T$. I describe this shuffling process for each module for an initiating node $P$. 
 
-\subsubsection*{Cyclon}
+\subsection{Cyclon}
 This module operates at the lowest-level, being situated just above the layer where communications take place. It forms an overlay and maintains random links between nodes using an epidemic algorithm. Each peer knows a small, continuously changing set of other peers, called its neighbours, and occasionally contacts one to exchange some of their neighbours.
 
-\paragraph*{Shuffling}
+\subsubsection*{Shuffling}
 \begin{enumerate}
 \item Select a neighbour $Q$ with the highest age among all neighbours, and a subset of $G-1$ other neighbours.
 \item Replace $Q$'s entry with a new entry of age 0 and with $P$'s details.
@@ -143,19 +172,32 @@ This module operates at the lowest-level, being situated just above the layer wh
 \item Update $P$'s view to include all remaining entries, by firstly using empty slots (if any) and secondly replacing entries among the ones sent to $Q$.
 \end{enumerate}
 
-On reception of a shuffling query a node $Q$ replies by sending back a random subset of at most of $G$ its neighbours, and updates its own view to accommodate all received entries. 
+On reception of a shuffling query a node $Q$ replies by sending back a random subset of at most of $G$ its neighbours, and updates its own view to accommodate all received entries.
 
-It must be noted that this is susceptible to entry forgery, wherein the contact details of a node can be forged
+\subsubsection*{Bootstrapping}
+As Cyclon is the lowest-level module, it is where we perform bootstrapping. To bootstrap the overlay network, the bootstrap node is inserted into the Cyclon module's view and three initial shuffles are performed with the node.
 
-\subsubsection*{Vicinity}
+\subsection{Vicinity}
+This module maintains random links between nodes that share interest in one or more topics. Such links serve as input to the RINGS module and are used by the dissemination protocol to propagate events to arbitrary subscribers of a topic.
 
+\subsubsection*{Shuffling}
+\begin{enumerate}
+\item Select oldest neighbour $Q$ for gossiping. 
+\item $P$ merges its views from all three modules.
+\item $P$ replaces $Q$'s entry with its own in this new merged view, setting the age to 0.
+\end{enumerate}
 
-\subsubsection*{Rings}
+\subsection{Rings}
 
 Failure of a node to respond results in them being removed from the module's view.
 
-\section{Conclusion}
+\section{Implementation}
+Nodes use a 512 bit elliptic curve keypair for their asymmetric encryption. Nodes use ECDSA with SHA-256 for the signature field of messages. Weav will automatically create a clickable link to the tag or the URI of a message.
 
-\bibliography{whitepaper}
+\section{Conclusion}
+Something here soon.
+
+\bibliography{whitepaper}{}
+\bibliographystyle{plain}
 
 \end{document}
