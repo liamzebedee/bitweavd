@@ -85,15 +85,22 @@ These features alone provide something similar to \textit{Twitter} tweets and \t
 \label{id}
 As a requirement of the simple objective, we must have a single system of identification for contacts, messages and topics. I define a type called the \textbf{ID} to identify all of these items. 
 
-The purpose of the ID is to provide a unique fixed-size identifier for a contact, message or hashtag. I employ the Bitcoin address generation algorithm\cite{btcAddr}, as it has shown to provide a simplistic and secure identification format. It is detailed as follows:
+The purpose of the ID is to provide a unique fixed-size identifier for a contact, message or hashtag. I make the distinction between \textbf{basic ID}s — those which are exchanged between computers, and \textbf{human ID}s — those which are exchanged between humans. The important difference between the two is that human IDs have additional steps for computation and encoding, including a recognisable version/identifier, a checksum to guard against input errors and Base58 encoding for ease of input. My human ID approach is the same algorithm for Bitcoin address generation\cite{btcAddr}. 
+
+\subsubsection*{Basic ID generation}
 \begin{enumerate}
 \item Having some arbitrary array of data as input to the \emph{ID} function — the content.
 \item Perform SHA2-256 hashing on the content.
-\item Perform RIPEMD-160 hashing on the result of the SHA2-256.
-\item Prepend the version byte 0x49 or "W" to the RIPEMD-160 hash.
-\item Perform a double SHA2-256 hashing on the extended RIPEMD-160 result.
-\item Append the first 4 bytes of the double SHA2-256 hashing (the checksum) to the extended RIPEMD-160 hash.
-\item Optionally encode in Base58 for human representation. 
+\item Perform RIPEMD-160 hashing on the result of the SHA2-256 hashing.
+\end{enumerate}
+
+\subsubsection*{Human ID generation}
+\begin{enumerate}
+\item Given the result of basic ID generation from above as input to the \emph{humanID} function.
+\item Prepend the version byte 0x49 or "W" to the basic ID.
+\item Perform a double SHA2-256 hashing on the extended basic ID.
+\item Append the first 4 bytes of the double SHA2-256 hashing (the checksum) to the extended basic ID.
+\item Encode in Base58 for human representation. 
 \end{enumerate}
 
 For \textbf{contacts}, the ID is computed over the contact's public key. For \textbf{messages}, the ID is computed over the message's content (excluding the signature, which I describe in chapter~\ref{security}). Lastly for \textbf{topics} the ID is computed over the hashtag itself.
@@ -131,11 +138,11 @@ I eventually discovered \textit{PolderCast}\cite{poldercast}, a recent publish-s
 In this section I will outline the design of \textit{PolderCast} and describe my modifications to it.
 
 \subsection{PolderCast}
-The Poldercast overlay consists of three layered network modules: \emph{CYCLON}, \emph{VICINITY} and \emph{RINGS}. Each module maintains its own view, managed by a separate gossiping protocol, which gossips periodically, asynchronously, and independently from the other two modules.
+The PolderCast overlay management mechanism is built around three layered network modules: \emph{CYCLON}, \emph{VICINITY} and \emph{RINGS}. Each module maintains its own view, managed by a separate gossiping protocol, which gossips periodically, asynchronously, and independently from the other two modules.
 
-The system consists of an overlay network wherein nodes communicate using an \textbf{RPC framework} discussed in chapter ~\ref{impl}. Each node in the overlay network has a unique identifier, which is assumed to be sortable and to occupy a circular value space. PolderCast assumes that the underlying communication network is fully connected, in the sense that any node can send a message to any other node, provided it knows its contact details. 
+The system consists of an overlay network wherein nodes communicate using an \textbf{RPC framework} discussed in chapter ~\ref{impl}. Each node in the overlay network has a unique identifier, which is assumed to be sortable and to occupy a circular value space — this is the contact address. PolderCast assumes that the underlying communication network is fully connected, in the sense that any node can send a message to any other node, provided it knows its contact details. 
 
-The topic-based publish/subscribe communication system is organized around a set of topics. I define each \textbf{topic} as 160 bit key.
+The publish-subscribe system is organized around a set of topics, each identified by an ID. I define the ID to be
 
 Each module maintains a node table called the \textbf{view}, wherein profiles for nodes of that module are contained and annotated respectively by an age value. Whenever we send a message from any module, we increment the age value of all nodes. Whenever a node gossips with another neighbour $Q$, it temporarily removes $Q$ from the respective module’s view, anticipating that it will respond and will be inserted anew. A neighbour's age is zeroed when a gossip message (or response) is received from
 that neighbour. A neighbour's age is retained also when that neighbour is handed
