@@ -131,75 +131,55 @@ Nodes must communicate via a secure transport protocol to preserve the authentic
 
 \section{Overlay Network}
 \label{network}
-The principle objective of the overlay network is to \textbf{distribute messages to interested nodes in a scalable and reliable manner}, a design called a publish-subscribe system. I considered a couple of publish-subscribe systems, namely \textit{SCRIBE} and \textit{Pub2Sub}, however I found their weakness to be relying on nodes which aren't necessarily interested in certain topics (so called 'rendez-vous' nodes) to  serve the distribution of messages on that topic.
+The principle objective of the overlay network is to \textbf{distribute messages to interested nodes in a scalable and reliable manner}, a design called a publish-subscribe system. I considered a couple of publish-subscribe systems, namely \textit{SCRIBE}~\cite{castro2002scribe} and \textit{PUB-2-SUB}~\cite{pub2sub}, however I found their shared weakness to be relying on nodes which aren't necessarily interested in certain topics (so called 'rendez-vous' nodes) to aid in the distribution of messages on that topic.
 
-I eventually discovered \textit{PolderCast}\cite{poldercast}, a recent publish-subscribe system from 2012 that achieves this objective. The critical advantage of PolderCast lies in its gossip-based network design that is resilient to node churn while requiring only minimal node state necessary for routing — both publishers and subscribers are allowed to join and leave at any moment, without any prior notice, due to topic subscription being implicit in the routing. It also features a layered network module design that proves useful when developing additional functions for the overlay network.
+I eventually discovered \textit{PolderCast}~\cite{poldercast}, a recent publish-subscribe system from 2012 that achieves this objective. The critical advantage of PolderCast lies in its gossip-based network design that is resilient to node churn while requiring only minimal node state necessary for routing — both publishers and subscribers are allowed to join and leave at any moment, without any prior notice, due to topic subscription being implicit in the routing process. It also features a layered network module design that proves useful when developing additional functions for the overlay network.
 
 In this section I will outline the design of \textit{PolderCast} and describe my modifications to it.
 
 \subsection{PolderCast}
-The PolderCast overlay management mechanism is built around three layered network modules: \emph{CYCLON}, \emph{VICINITY} and \emph{RINGS}. Each module maintains its own view, managed by a separate gossiping protocol, which gossips periodically, asynchronously, and independently from the other two modules.
+The overlay network is composed of nodes and topics, both being uniquely identified by an ID (a basic ID as described in ch.~\ref{id}). \textbf{Nodes} are networked hosts that communicate with other nodes using a simple query-reply RPC framework (discussed in ch.~\ref{impl}). Nodes organise themselves around \textbf{topics}, to which they can subscribe to and publish messages on. At a conceptual level, each topic is modelled as a ring that connects all corresponding subscribers of it and only them. These rings are then augmented by random links across the topics which produces a single, connected and navigable overlay. 
 
-The system consists of an overlay network wherein nodes communicate using an \textbf{RPC framework} discussed in chapter ~\ref{impl}. Each node in the overlay network has a unique identifier, which is assumed to be sortable and to occupy a circular value space — this is the contact address. PolderCast assumes that the underlying communication network is fully connected, in the sense that any node can send a message to any other node, provided it knows its contact details. 
+The basis to the management of the overlay are three layered network modules: \emph{CYCLON}, \emph{VICINITY} and \emph{RINGS}. Each module maintains its own routing table (called the view), managed by a separate gossiping protocol, which gossips periodically, asynchronously, and independently from the other two modules.
 
-The publish-subscribe system is organized around a set of topics, each identified by an ID. I define the ID to be
-
-Each module maintains a node table called the \textbf{view}, wherein profiles for nodes of that module are contained and annotated respectively by an age value. Whenever we send a message from any module, we increment the age value of all nodes. Whenever a node gossips with another neighbour $Q$, it temporarily removes $Q$ from the respective module’s view, anticipating that it will respond and will be inserted anew. A neighbour's age is zeroed when a gossip message (or response) is received from
-that neighbour. A neighbour's age is retained also when that neighbour is handed
-from one node to another. Finally A node always selects to gossip with its oldest neighbour.
-
-For any of the three modules, node $Q$ being a neighbour of node $P$ means that $P$ has a copy of $Q$'s profile in the respective module's view. A node's profile contains:
+The \textbf{view} stores a list node profiles, each annotated respectively by an age value. A node~$Q$ being a \textbf{neighbour} of node~$P$ means that~$P$ has a copy of~$Q$'s profile in the respective module's view. A node's \textbf{profile} contains:
 \begin{enumerate}[i.]
 \item its network contact details.
-\item its public key, and subsequently from this its unique address (which is derived client-side).
-\item the IDs of topics the node is subscribed to, each annotated with a priority that node assigns to finding neighbours of that topic.
+\item its public key, and subsequently from this its unique ID or address (which is derived client-side).
+\item its interests — a signed and timestamped copy of the IDs of topics the node is subscribed to, each annotated with a priority that node assigns to finding neighbours of that topic. 
+
+Clearly the interests of a node may vary over time, so this section of a node's profile is timestamped so nodes may identify newer copies. It is also signed for obvious reasons of security.
 \end{enumerate}
 
-The 
-The priority of a topic is determined by the number of neighbors it has in the Rings module: topics with fewer Rings neighbors are assigned higher priority. Clearly, two or more copies of a node’s profile may be different, notably when the node updates its subscriptions, or reports different priorities for its topics. When gossiping to a neighbor, a node sends a fresh copy of its profile, reflecting its current state.
+I also maintain two variables for each module: the view size~$V$ and gossip size~$G$. The \textbf{view size} defines the maximum number of neighbours to maintain, and is normally 20. The \textbf{gossip size} defines the maximum number of neighbours to be included in a gossip message, and is by default 20.
 
-Lastly, I maintain two variables for each module: the view size $V$ and gossip size $G$. The \textbf{view size} defines the maximum number of neighbours to maintain, and is normally 20. The \textbf{gossip size} defines the maximum number of neighbours to be included in a gossip message, and is by default 20.
-
-The network is based on a relatively small set of functions that provides for overlay network maintenance, message distribution and message retrieval.
+Finally, the network is based on a relatively small set of functions that provides for overlay network maintenance, message distribution and message retrieval, which I will proceed to describe.
 
 \subsection{Network Maintenance}
-As briefly mentioned, we have three modules, each with their own gossiping protocol. Each module's gossiping protocol is based on the concept of a shuffle, a process whereby nodes initiate neighbour exchanges periodically, yet not synchronized, at a fixed period $T$. I describe this shuffling process for each module for an initiating node $P$. 
+As briefly mentioned, we have three modules, each with their own gossiping protocol. Each module's gossiping protocol is based on the concept of a \textbf{shuffle}, a process whereby nodes initiate neighbour exchanges periodically, yet not synchronized, with their oldest neighbour at a fixed period~$T$. I describe this shuffling process for each module for an initiating node~$P$. 
 
-\subsection{Cyclon}
-This module operates at the lowest-level, being situated just above the layer where communications take place. It forms an overlay and maintains random links between nodes using an epidemic algorithm. Each peer knows a small, continuously changing set of other peers, called its neighbours, and occasionally contacts one to exchange some of their neighbours.
-
-\subsubsection*{Shuffling}
+The common rules following gossiping are as follows:
 \begin{enumerate}
-\item Select a neighbour $Q$ with the highest age among all neighbours, and a subset of $G-1$ other neighbours.
-\item Replace $Q$'s entry with a new entry of age 0 and with $P$'s details.
-\item Send the updated subset to $Q$.
-\item Receive from $Q$ a subset of $G$ entries.
-\item Discard entries pointing at $P$ and nodes that $P$ already knows of.
-\item Verify entries are valid by establishing a connection to such nodes and discard any invalid entries.
-\item Update $P$'s view to include all remaining entries, by firstly using empty slots (if any) and secondly replacing entries among the ones sent to $Q$.
+\item Whenever a node gossips with another neighbour~$Q$, it temporarily removes~$Q$ from the respective module’s view, anticipating that it will respond and will be inserted anew. 
+\item Whenever a node sends a message, it increments the age value of all nodes in the respective module's view.
+\item A neighbour's age is retained when that neighbour is handed from one node to another.
 \end{enumerate}
 
-On reception of a shuffling query a node $Q$ replies by sending back a random subset of at most of $G$ its neighbours, and updates its own view to accommodate all received entries.
+% TODO message stuff (already written)
+\subsection{Message distribution}
+\subsection{Message retrieval}
 
-\subsubsection*{Bootstrapping}
-As Cyclon is the lowest-level module, it is where we perform bootstrapping. To bootstrap the overlay network, the bootstrap node is inserted into the Cyclon module's view and three initial shuffles are performed with the node.
+% TODO private messaging, research OTR messaging
+\section{Private communications}
+% TODO protocol for video/audio chat and invites
+\subsection*{Video/Audio communications}
 
-\subsection{Vicinity}
-This module maintains random links between nodes that share interest in one or more topics. Such links serve as input to the RINGS module and are used by the dissemination protocol to propagate events to arbitrary subscribers of a topic.
-
-\subsubsection*{Shuffling}
-\begin{enumerate}
-\item Select oldest neighbour $Q$ for gossiping. 
-\item $P$ merges its views from all three modules.
-\item $P$ replaces $Q$'s entry with its own in this new merged view, setting the age to 0.
-\end{enumerate}
-
-\subsection{Rings}
-
-Failure of a node to respond results in them being removed from the module's view.
+% TODO spam prevention
 
 \section{Implementation}
 Nodes use a 512 bit elliptic curve keypair for their asymmetric encryption. Nodes use ECDSA with SHA-256 for the signature field of messages. Weav will automatically create a clickable link to the tag or the URI of a message.
+
+% TODO overlay/IRC mechanism for finding nodes based on ID and signalling and crap
 
 \section{Conclusion}
 Something here soon.
