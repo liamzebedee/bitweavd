@@ -61,7 +61,7 @@ In this paper I describe both the theory of \textit{bitWeav} and its premier imp
 \item \textbf{Secure}: the authenticity, integrity, and completeness of public content sent within the network must be preserved by the system and independently verifiable by nodes. Replay attacks must be defended against. Forward secrecy must be ensured for private messages.
 \end{enumerate}
 
-\section{Contacts and Messages}
+\section{Contacts and messages}
 \label{ContactsAndMessages}
 At the core of \textit{bitWeav} are contacts and messages. Contacts are the users who access the \textit{bitWeav} network, and messages are the basis of their communications.
 
@@ -129,7 +129,7 @@ A principle objective of \textit{bitWeav} is to be secure. The idea that securit
 Nodes must communicate via a secure transport protocol to preserve the authenticity, integrity, and completeness of data sent within the network. This is further described in chapter~\ref{impl}.
 % TODO elaborate on replay attack protections
 
-\section{Overlay Network}
+\section{Overlay network}
 \label{network}
 The principle objective of the overlay network is to \textbf{distribute messages to interested nodes in a scalable and reliable manner}, a design called a publish-subscribe system. I considered a couple of publish-subscribe systems, namely \textit{SCRIBE}~\cite{castro2002scribe} and \textit{PUB-2-SUB}~\cite{pub2sub}, however I found their shared weakness to be relying on nodes which aren't necessarily interested in certain topics (so called 'rendez-vous' nodes) to aid in the distribution of messages on that topic.
 
@@ -140,7 +140,7 @@ In this section I will outline the design of \textit{PolderCast} and describe my
 \subsection{PolderCast}
 The overlay network is composed of nodes and topics, both being uniquely identified by an ID (a basic ID as described in ch.~\ref{id}). \textbf{Nodes} are networked hosts that communicate with other nodes using a simple query-reply RPC framework (discussed in ch.~\ref{impl}). Nodes organise themselves around \textbf{topics}, to which they can subscribe to and publish messages on. At a conceptual level, each topic is modelled as a ring that connects all corresponding subscribers of it and only them. These rings are then augmented by random links across the topics which produces a single, connected and navigable overlay. 
 
-The basis to the management of the overlay are three layered network modules: \emph{CYCLON}, \emph{VICINITY} and \emph{RINGS}. Each module maintains its own routing table (called the view), managed by a separate gossiping protocol, which gossips periodically, asynchronously, and independently from the other two modules.
+The basis to the management of the overlay are three layered network modules: \emph{Cyclon}, \emph{Vicinity} and \emph{Rings}. Each module maintains its own routing table (called the view), managed by a separate gossiping protocol, which gossips periodically, asynchronously, and independently from the other two modules.
 
 The \textbf{view} stores a list node profiles, each annotated respectively by an age value. A node~$Q$ being a \textbf{neighbour} of node~$P$ means that~$P$ has a copy of~$Q$'s profile in the respective module's view. A node's \textbf{profile} contains:
 \begin{enumerate}[i.]
@@ -155,7 +155,7 @@ I also maintain two variables for each module: the view size~$V$ and gossip size
 
 Finally, the network is based on a relatively small set of functions that provides for overlay network maintenance, message distribution and message retrieval, which I will proceed to describe.
 
-\subsection{Network Maintenance}
+\subsection{Overlay network maintenance}
 As briefly mentioned, we have three modules, each with their own gossiping protocol. Each module's gossiping protocol is based on the concept of a \textbf{shuffle}, a process whereby nodes initiate neighbour exchanges periodically, yet not synchronized, with their oldest neighbour at a fixed period~$T$. I describe this shuffling process for each module for an initiating node~$P$. 
 
 The common rules following gossiping are as follows:
@@ -163,6 +163,61 @@ The common rules following gossiping are as follows:
 \item Whenever a node gossips with another neighbour~$Q$, it temporarily removes~$Q$ from the respective module’s view, anticipating that it will respond and will be inserted anew. 
 \item Whenever a node sends a message, it increments the age value of all nodes in the respective module's view.
 \item A neighbour's age is retained when that neighbour is handed from one node to another.
+\end{enumerate}
+
+I define three RPCs in this category: \textbf{gossipCyclon}, \textbf{gossipVicinity} and \textbf{gossipRings}.
+
+\subsubsection{Cyclon}
+This module operates at the lowest-level, being situated just above the layer where communications take place. It forms an overlay and maintains random links between nodes using an epidemic algorithm. Each node knows a small, continuously changing set of neighbours, and occasionally contacts one to exchange some of their neighbours.
+
+\paragraph*{Shuffling}
+\begin{enumerate}
+\item Select a neighbour $Q$ with the highest age among all neighbours, and a subset of $G-1$ other neighbours.
+\item Replace $Q$'s entry with a new entry of age 0 and with $P$'s details.
+\item Send the updated subset to $Q$.
+\item Receive from $Q$ a subset of $G$ entries.
+\item Discard entries pointing at $P$ and nodes that $P$ already knows of.
+\item Verify entries are valid by establishing a connection to such nodes and discard any invalid entries.
+\item Update $P$'s view to include all remaining entries, by firstly using empty slots (if any) and secondly replacing entries among the ones sent to $Q$.
+\end{enumerate}
+
+On reception of a shuffling query a node $Q$ replies by sending back a random subset of at most of $G$ its neighbours, and updates its own view to accommodate all received entries.
+
+\paragraph*{Bootstrapping}
+As \textit{Cyclon} is the lowest-level module, it is where we perform bootstrapping. To bootstrap the application, the bootstrap node is inserted into the \textit{Cyclon} module's view and three initial shuffles are performed with the node (to simulate a random walk, as per the original design).
+
+\subsubsection{Vicinity}
+This module maintains random links between nodes that share interest in one or more topics. Such links serve as input to the \textit{Rings} module and are used by the dissemination protocol to propagate events to arbitrary subscribers of a topic.
+
+\paragraph*{Shuffling}
+\begin{enumerate}
+\item Let $P$ select its oldest neighbour $Q$ for gossiping.
+\item $P$ merges its views from all three modules.
+\item $P$ replaces $Q$'s entry with its own in this new merged view, setting the age to 0.
+\item $P$ selects the $G$ nodes closest to $Q$ by applying the proximity function on its behalf, and sends them to $Q$. 
+
+The proximity function is designed to ensure that the \textit{Rings} module is supplied with (arbitrary) neighbours for all its topics. In that respect, candidates subscribed to topics annotated with higher priority by the target node are ranked closer compared to candidates of lower priority topics. Among candidate nodes that rank equally in terms of topic priorities, proximity is determined by the number of topics shared with the target node: the more shared topics, the closer their ranking.
+\item Receive from $Q$ its $G$ closest to $P$ nodes.
+\item Merge these into the view and rebuild it by selecting the $G$ closest nodes and discarding the others.
+\end{enumerate}
+
+Upon reception of a shuffling query, $Q$ merges the received neighbours with the union of all its views, and updates its \textit{Vicinity} view to the $V$ closest neighbours. It then repeats steps 2 to 4 for $P$. 
+
+\subsubsection{Rings}
+This module discovers a node's successor and predecessor for each topic in its subscription, and quickly adapts to new successors/predecessors in dynamic networks.
+
+Each node maintains $G$ neighbours for each topic in its subscription: $V/2$ with lower and $V/2$ with higher ID. It periodically picks a node from its \textit{Rings} view, and the two nodes exchange up to $G$ neighbours to help each other improve their respective views.
+
+The sorting function used to determine the lower/higher nature of an ID is the XOR metric, as used in the Kademlia DHT.
+
+\paragraph*{Shuffling}
+\begin{enumerate}
+\item Let $P$ select its oldest neighbour $Q$ for gossiping.
+\item $P$ collects all subscribers of topics which $P$ and $Q$ have in common, considering the union of views of all three modules.
+\item $P$ sorts them by ID, and for each topic in common with $Q$ it selects the $V/2$ ones with just lower and the $V/2$ ones with just higher ID than $Q$'s ID. 
+\item If more than $G$ nodes have been selected, it randomly picks $G$ of them.
+\item It sends the selected nodes to $Q$, and $Q$ does the same in return.
+\item Upon reception of such nodes, $P$ merges them with the current view for the topic, and it selects the $V/2$ ones with just lower and the $V/2$ ones with just higher ID than $P$'s ID.
 \end{enumerate}
 
 % TODO message stuff (already written)
@@ -182,6 +237,7 @@ Nodes use a 512 bit elliptic curve keypair for their asymmetric encryption. Node
 % TODO overlay/IRC mechanism for finding nodes based on ID and signalling and crap
 
 \section{Conclusion}
+% This is what people read to get a sense of the innovations of the project, and is like the blurb of the paper.
 Something here soon.
 
 \bibliography{whitepaper}{}
