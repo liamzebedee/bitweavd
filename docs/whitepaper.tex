@@ -151,12 +151,13 @@ The \textbf{view} stores a list node profiles, each annotated respectively by an
 Clearly the interests of a node may vary over time, so this section of a node's profile is timestamped so nodes may identify newer copies. It is also signed for obvious reasons of security.
 \end{enumerate}
 
-I also maintain two variables for each module: the view size~$V$ and gossip size~$G$. The \textbf{view size} defines the maximum number of neighbours to maintain, and is normally 20. The \textbf{gossip size} defines the maximum number of neighbours to be included in a gossip message, and is by default 20.
+I also maintain two variables for each module: the view size~$V$ and gossip size~$G$. The \textbf{view size} defines the maximum number of neighbours to maintain:~$V = 20$ for Cyclon and Vicinity,~$V = 4$ for Rings. The \textbf{gossip size} defines the maximum number of neighbours to be included in a gossip message, and is by default 20.
 
 Finally, the network is based on a relatively small set of functions that provides for overlay network maintenance, message distribution and message retrieval, which I will proceed to describe.
 
 \subsection{Overlay network maintenance}
-As briefly mentioned, we have three modules, each with their own gossiping protocol. Each module's gossiping protocol is based on the concept of a \textbf{shuffle}, a process whereby nodes initiate neighbour exchanges periodically, yet not synchronized, with their oldest neighbour at a fixed period~$T$. I describe this shuffling process for each module for an initiating node~$P$. 
+As briefly mentioned, we have three modules, each with their own gossiping protocol. Each module's gossiping protocol is based on the concept of a \textbf{shuffle}, a process whereby nodes initiate neighbour exchanges periodically, yet not synchronized, with their oldest neighbour at a fixed period~$T = X$. I describe this shuffling process for each module for an initiating node~$P$.
+% TODO what is the default for T
 
 The common rules following gossiping are as follows:
 \begin{enumerate}
@@ -206,9 +207,9 @@ Upon reception of a shuffling query, $Q$ merges the received neighbours with the
 \subsubsection{Rings}
 This module discovers a node's successor and predecessor for each topic in its subscription, and quickly adapts to new successors/predecessors in dynamic networks.
 
-Each node maintains $G$ neighbours for each topic in its subscription: $V/2$ with lower and $V/2$ with higher ID. It periodically picks a node from its \textit{Rings} view, and the two nodes exchange up to $G$ neighbours to help each other improve their respective views.
+Nodes are placed into rings in the order of their node IDs. Each node maintains $G$ neighbours for each topic in its subscription: $V/2$ with lower and $V/2$ with higher ID. It periodically picks a node from its \textit{Rings} view, and the two nodes exchange up to $G$ neighbours to help each other improve their respective views.
 
-The sorting function used to determine the lower/higher nature of an ID is the XOR metric, as used in the Kademlia DHT.
+The sorting function used to determine the lower/higher nature of an ID is simply a comparison between two IDs (which are treated as 160 bit integers) to find the largest number.
 
 \paragraph*{Shuffling}
 \begin{enumerate}
@@ -220,9 +221,30 @@ The sorting function used to determine the lower/higher nature of an ID is the X
 \item Upon reception of such nodes, $P$ merges them with the current view for the topic, and it selects the $V/2$ ones with just lower and the $V/2$ ones with just higher ID than $P$'s ID.
 \end{enumerate}
 
-% TODO message stuff (already written)
 \subsection{Message distribution}
+There are three categories of topics that nodes may publish/subscribe to:
+\begin{enumerate}
+\item Hashtags
+\item Threads
+\item Contacts
+\end{enumerate}
+
+I define the \textbf{publish} RPC, which contains a message object and provides a simple mechanism for distributing messages independent of author. 
+
+\subsubsection*{Rules}
+Nodes follow certain rules regarding the publishing of messages. I employ a novel incentive to dissuade nodes from publishing unrelated messages on topics:~when a node $P$ receives a \emph{publish} RPC from a node $Q$, and the message is not suited for that topic (the requirements of which I describe below), $P$ does not forward that message and immediately terminates its connection with $Q$.  
+
+A node must check all the requirements for each message, something relatively cumbersome but definitely necessary for a high-quality content network. A node must only broadcast to a topic if:
+\begin{enumerate}
+\item The topic is the ID of one of the hashtags in the message.
+\item The topic is the thread that the message is published on.
+\item The topic is the ID of the \emph{from} field. 
+\end{enumerate}
+
+The incentive here is that if a node does not filter messages, it will be evicted from the network by honest nodes.
+
 \subsection{Message retrieval}
+
 
 % TODO private messaging, research OTR messaging
 \section{Private communications}
