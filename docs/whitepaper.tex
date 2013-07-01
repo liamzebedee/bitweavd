@@ -19,7 +19,7 @@
 \usepackage{enumerate}
 \author{Liam Edwards-Playne \textless liamz.co\textgreater}
 \date{June 1, 2013}
-\title{bitWeav — scalable decentralised peer-to-peer communications}
+\title{bitWeav — scalable realtime decentralised and peer-to-peer communications}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -244,10 +244,20 @@ A node must check all the requirements for each message, something relatively cu
 The incentive here is that if a node does not filter messages, it will be evicted from the network by honest nodes.
 
 \subsection{Message retrieval}
+Despite its similarity to the functionality of \textit{Twitter}, the persistence of messages in \textit{bitWeav} is not guaranteed. To best our knowledge, the only peer-to-peer system that has provided a strong incentive for nodes to store content is the \textit{Bitcoin} network, which incentivises the processing and storing of transactions (mining) through digital income in the form of Bitcoins. As \textit{bitWeav} is a free content network, there is no basis for a reward, so instead we must rely on nodes to store content.
 
+A significant and intentional aspect of \textit{bitWeav} is the temporary nature of its content. Similar to \textit{IRC}, a node only receives messages when it is part of the network. When a node is disconnected for a period of time, the only means to accessing old messages is to request them from nodes who might of kept them, if any. There is no requirement for them to be stored permanently, however the protocol has certain constraints on when a message must be stored temporarily.
+
+For example, when a node $P$ is listening in on a thread, and another node $Q$ sends it a message in reply to another message that $P$ has no record of, $P$ will request that message from $Q$. In this circumstance, if $Q$ has published a message without retaining it, both $Q$ and the message will be dropped by $P$. This is also true if $Q$ has published a message in reply to a non-existent message. This mechanism whereby a node is dropped if they do not temporarily store a message they have replied to produces the incentive for nodes to retain messages and thus improve quality of service.
+
+\subsubsection*{RPCs}
+The RPC a node will use to request a specific message, perhaps in a circumstance when they may have missed a message on a thread, is the \textbf{getMessage} RPC. This requires only a message ID and returns the message object. 
+
+The other RPC a node might use when they have recently rejoined the network and are looking for recent updates on topics is the \textbf{getRecent} RPC. This RPC takes an ID of a topic and returns a list of relevant messages.
 
 % TODO private messaging, research OTR messaging
 \section{Private communications}
+
 % TODO protocol for video/audio chat and invites
 \subsection*{Video/Audio communications}
 
@@ -258,9 +268,13 @@ Nodes use a 512 bit elliptic curve keypair for their asymmetric encryption. Node
 
 % TODO overlay/IRC mechanism for finding nodes based on ID and signalling and crap
 
+\section{Future work}
+% message retrieval
+
 \section{Conclusion}
 % This is what people read to get a sense of the innovations of the project, and is like the blurb of the paper.
 Something here soon.
+Incentives to produce quality content — filtering, don't distribute non-existent messages, keep messages so others may get them
 
 \bibliography{whitepaper}{}
 \bibliographystyle{plain}
