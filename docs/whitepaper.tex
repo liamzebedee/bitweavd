@@ -19,7 +19,7 @@
 \usepackage{enumerate}
 \author{Liam Edwards-Playne \textless liamz.co\textgreater}
 \date{June 1, 2013}
-\title{bitWeav — scalable realtime decentralised and peer-to-peer communications}
+\title{BitWeav — scalable realtime decentralised and peer-to-peer communications}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -31,16 +31,12 @@ In the last half-decade we have seen how the microblogging atmosphere of \textit
 
 A similar, older and more sustainable platform is \textit{IRC}. Like \textit{Twitter}, \textit{IRC} facilitated public text-based discussion on topics (channels). It had its advantages and disadvantages as it used a moderator-based group discussion device called a channel, but the user bases of such were fragmented across differing \textit{IRC} networks. Nonetheless, its more advanced organised discussion led to it becoming the key communications tool for 'hackers'. Hackers found the setup requiring minimum personal details, in combination with the simplistic and programmable interface which is the \textit{IRC} protocol, allowed for high-quality discussions that focused on the content. 
 
-% TODO this is a bit too emotive
-Finally there was \textit{Skype}. The unique feature of \textit{Skype} was its alternate method of communication — video chat. It allowed individuals to talk privately and securely with ease. Perhaps the most significant but relatively unknown aspect of \textit{Skype} was its decentralised and peer-to-peer network architecture. Although \textit{Skype} wasn't truly decentralised, it did show that service could be improved through such a system. Alas after the acquisition by \textit{Microsoft}, the platform headed downhill, instead revoking the previous security and decentralised nature of the application in favour of centralisation. Users could no longer rely on the simple yet secure platform which it had a strong image for, and have been lost in a myriad of alternatives since. 
+Finally there was \textit{Skype}. The unique feature of \textit{Skype} was its alternate medium for communication — video/audio chat. It allowed individuals to talk privately and securely with ease. Perhaps the most significant but relatively unknown aspect of \textit{Skype} was its decentralised and peer-to-peer network architecture, which showed that a decentralised communication system is possible. For the initial period its communications were completely secure, something that wasn't before brought to the market. Later however its image was tarnished by confirmations of multiple backdoors~\cite{skypeBackdoor,skypeBackdoor2} existing for authorities to wiretap communications — its fault laid in the proprietary nature of the protocol and the closed-source client.
 
-One such alternative I have come across was \textit{Bitmessage}. \textit{Bitmessage} is a text-based communications protocol that rivals email, relying on a decentralised network of nodes to provide a peer-to-peer communications platform that is secure and easy to use. I commend the author of the application on these features and the effort it had taken to construct such a project, but despite these things the protocol had numerous faults. Its broadcast mechanism which resembled a gossip protocol was not to be desired. There had also been numerous reported vulnerabilities, but these extend the scope of my interest. I set out to build an alternative, that would combine the features of \textit{Twitter}, \textit{IRC} and \textit{Skype}, while retaining the sustainable nature of \textit{Bitmessage}. It was to be an experiment in decentralised peer-to-peer innovation.
+I set out to build an alternative, that would combine the features of \textit{Twitter}, \textit{IRC} and \textit{Skype} while maintaining an open protocol that was decentralised and peer-to-peer. It was to be an experiment in decentralised peer-to-peer innovation, as well as a product in the communications market.
 
 \section{Objectives}
-% don't talk about browser, talk about WebRTC html5 tech
-Recent innovations and technologies have brought together a feasible environment for the creation of such a solution. The introduction of in-browser peer-to-peer networking API particularly struck me as a fantastic opportunity to implement an application that was decentralised and had magnificent ease-of-use. Another significant aspect was a novel decentralised peer-to-peer publish-subscribe architecture called \textit{PolderCast}, which featured a publish-subscribe system that distributed messages only to the nodes who were interested, in a scalable manner.
-
-In this paper I describe both the theory of \textit{bitWeav} and its premier implementation called \textit{Weav}. To guide the development of \textit{bitWeav}, I formulated a list of objectives that expressed the key features necessary for its completion.
+In this paper I describe both the theory of \textit{BitWeav} and its premier implementation called \textit{Weav}. To guide the development of \textit{BitWeav}, I formulated a list of objectives that expressed the key features necessary for its completion.
 \begin{enumerate}
 \item \textbf{Decentralised}: we must not rely on any set of nodes to provide for any other set of nodes, in the circumstances where if their connection were severed it would produce irreparable damage to the network. 
 
@@ -63,10 +59,10 @@ In this paper I describe both the theory of \textit{bitWeav} and its premier imp
 
 \section{Contacts and messages}
 \label{ContactsAndMessages}
-At the core of \textit{bitWeav} are contacts and messages. Contacts are the users who access the \textit{bitWeav} network, and messages are the basis of their communications.
+At the core of \textit{BitWeav} are contacts and messages. Contacts are the users who access the \textit{BitWeav} network, and messages are the basis of their communications.
 
 \subsection*{Contacts}
-A contact is a generic term for machines and users accessing the \textit{bitWeav} network. Contacts authenticate using a \textbf{public/private key-pair}. They are identified by the computation of an identification function (described in ch.~\ref{id}) over the public key, which is referred to as their \textbf{address}. Since the public key is mathematically bound to the private key, this process makes forging an address infeasible.
+A contact is a generic term for machines and users accessing the \textit{BitWeav} network. Contacts authenticate using a \textbf{public/private key-pair}. They are identified by the computation of an identification function (described in ch.~\ref{id}) over the public key, which is referred to as their \textbf{address}. Since the public key is mathematically bound to the private key, this process makes forging an address infeasible.
 
 The network operation of contacts is described in chapter~\ref{network}.
 
@@ -77,7 +73,7 @@ The bulk of the message is the \textbf{content}. The content is a maximum of 160
 
 The content can contain two types of markup: \textbf{hashtags} and \textbf{URIs}. Hashtags, which are space-delimited strings that begin with a hash '\#', are used to identify topics that a message is associated with. A message may have multiple hashtags. The other form of markup supported are links, which are \textit{URI}s which can be used to link to resources such as web pages and torrents (using the \textit{magnet URI} scheme).
 
-The final part to the message is its authentication section, which contains two mandatory fields. The first is the \textbf{from} field, which is the public key of the publishing node. In conjunction with the second field the \textbf{signature}, which is a digital signature computed over the remainder of the message, this authenticates the author of all messages regardless of sender. Because of this, any node can forward a message to others, which is an essential feature of \textit{bitWeav}'s message distribution strategy.
+The final part to the message is its authentication section, which contains two mandatory fields. The first is the \textbf{from} field, which is the public key of the publishing node. In conjunction with the second field the \textbf{signature}, which is a digital signature computed over the remainder of the message, this authenticates the author of all messages regardless of sender. Because of this, any node can forward a message to others, which is an essential feature of \textit{BitWeav}'s message distribution strategy.
 
 These features alone provide something similar to \textit{Twitter} tweets and \textit{IRC} messages, but \textbf{lack any structure to the conversation}. Before I explain how threads are implemented, I must first describe how they are identified — the \emph{ID}.
 
@@ -107,7 +103,7 @@ For \textbf{contacts}, the ID is computed over the contact's public key. For \te
 
 \section{Threading}
 \subsection*{Reply-based threading}
-There are two aspects to the threading of messages. The first is \textbf{reply-based threading} wherein a message is in response to another, which is what Twitter facilitates. The counterpart is \textbf{group-based threading}, wherein messages are part of a specific item of discussion on a topic — a thread. \textit{IRC} can be seen to support group-based threading, whereby each channel is a thread of messages. \textit{bitWeav} aims to support both of these. 
+There are two aspects to the threading of messages. The first is \textbf{reply-based threading} wherein a message is in response to another, which is what Twitter facilitates. The counterpart is \textbf{group-based threading}, wherein messages are part of a specific item of discussion on a topic — a thread. \textit{IRC} can be seen to support group-based threading, whereby each channel is a thread of messages. \textit{BitWeav} aims to support both of these. 
 
 As each message can be identified using its ID, it is simply to implement reply-based threading. I define a field \textbf{reply}, which maps to the ID of the message that one is in reply to. There can only be one reply. 
 
@@ -124,14 +120,13 @@ In this section I have outlined two optional fields: the reply and root fields. 
 
 \section{Security}
 \label{security}
-A principle objective of \textit{bitWeav} is to be secure. The idea that security should be ubiquitous is fundamental to its design.
+A principle objective of \textit{BitWeav} is to be secure. The idea that security should be ubiquitous is fundamental to its design.
 
 Nodes must communicate via a secure transport protocol to preserve the authenticity, integrity, and completeness of data sent within the network. This is further described in chapter~\ref{impl}.
-% TODO elaborate on replay attack protections
 
 \section{Overlay network}
 \label{network}
-The principle objective of the overlay network is to \textbf{distribute messages to interested nodes in a scalable and reliable manner}, a design called a publish-subscribe system. I considered a couple of publish-subscribe systems, namely \textit{SCRIBE}~\cite{castro2002scribe} and \textit{PUB-2-SUB}~\cite{pub2sub}, however I found their shared weakness to be relying on nodes which aren't necessarily interested in certain topics (so called 'rendez-vous' nodes) to aid in the distribution of messages on that topic.
+The principle objective of the overlay network is to \textbf{distribute messages to interested nodes in a scalable and reliable manner}, a design called a publish-subscribe system. I considered a couple of publish-subscribe systems, namely \textit{SCRIBE}~\cite{scribe} and \textit{PUB-2-SUB}~\cite{pub2sub}, however I found their shared weakness to be relying on nodes which aren't necessarily interested in certain topics (so called 'rendez-vous' nodes) to aid in the distribution of messages on that topic.
 
 I eventually discovered \textit{PolderCast}~\cite{poldercast}, a recent publish-subscribe system from 2012 that achieves this objective. The critical advantage of PolderCast lies in its gossip-based network design that is resilient to node churn while requiring only minimal node state necessary for routing — both publishers and subscribers are allowed to join and leave at any moment, without any prior notice, due to topic subscription being implicit in the routing process. It also features a layered network module design that proves useful when developing additional functions for the overlay network.
 
@@ -156,7 +151,9 @@ I also maintain two variables for each module: the view size~$V$ and gossip size
 Finally, the network is based on a relatively small set of functions that provides for overlay network maintenance, message distribution and message retrieval, which I will proceed to describe.
 
 \subsection{Overlay network maintenance}
-As briefly mentioned, we have three modules, each with their own gossiping protocol. Each module's gossiping protocol is based on the concept of a \textbf{shuffle}, a process whereby nodes initiate neighbour exchanges periodically, yet not synchronized, with their oldest neighbour at a fixed period~$T = X$. I describe this shuffling process for each module for an initiating node~$P$.
+As briefly mentioned, we have three modules, each with their own gossiping protocol. Each module's gossiping protocol is based on the concept of a \textbf{shuffle}, a process whereby nodes initiate neighbour exchanges periodically, yet not synchronized, with their oldest neighbour at a fixed period~$T = X$. The interval time should be larger than twice the expected worst-case network latency + processing delays as to prevent sending a gossip message before a response from the previous one. 
+
+I describe this shuffling process for each module for an initiating node~$P$.
 % TODO what is the default for T
 
 The common rules following gossiping are as follows:
@@ -244,9 +241,9 @@ A node must check all the requirements for each message, something relatively cu
 The incentive here is that if a node does not filter messages, it will be evicted from the network by honest nodes.
 
 \subsection{Message retrieval}
-Despite its similarity to the functionality of \textit{Twitter}, the persistence of messages in \textit{bitWeav} is not guaranteed. To best our knowledge, the only peer-to-peer system that has provided a strong incentive for nodes to store content is the \textit{Bitcoin} network, which incentivises the processing and storing of transactions (mining) through digital income in the form of Bitcoins. As \textit{bitWeav} is a free content network, there is no basis for a reward, so instead we must rely on nodes to store content.
+Despite its similarity to the functionality of \textit{Twitter}, the persistence of messages in \textit{BitWeav} is not guaranteed. To best our knowledge, the only peer-to-peer system that has provided a strong incentive for nodes to store content is the \textit{Bitcoin} network, which incentivises the processing and storing of transactions (mining) through digital income in the form of Bitcoins. As \textit{BitWeav} is a free content network, there is no basis for a reward, so instead we must rely on nodes to store content.
 
-A significant and intentional aspect of \textit{bitWeav} is the temporary nature of its content. Similar to \textit{IRC}, a node only receives messages when it is part of the network. When a node is disconnected for a period of time, the only means to accessing old messages is to request them from nodes who might of kept them, if any. There is no requirement for them to be stored permanently, however the protocol has certain constraints on when a message must be stored temporarily.
+A significant and intentional aspect of \textit{BitWeav} is the temporary nature of its content. Similar to \textit{IRC}, a node only receives messages when it is part of the network. When a node is disconnected for a period of time, the only means to accessing old messages is to request them from nodes who might of kept them, if any. There is no requirement for them to be stored permanently, however the protocol has certain constraints on when a message must be stored temporarily.
 
 For example, when a node $P$ is listening in on a thread, and another node $Q$ sends it a message in reply to another message that $P$ has no record of, $P$ will request that message from $Q$. In this circumstance, if $Q$ has published a message without retaining it, both $Q$ and the message will be dropped by $P$. This is also true if $Q$ has published a message in reply to a non-existent message. This mechanism whereby a node is dropped if they do not temporarily store a message they have replied to produces the incentive for nodes to retain messages and thus improve quality of service.
 
@@ -258,23 +255,27 @@ The other RPC a node might use when they have recently rejoined the network and 
 % TODO private messaging, research OTR messaging
 \section{Private communications}
 
+
 % TODO protocol for video/audio chat and invites
 \subsection*{Video/Audio communications}
 
-% TODO spam prevention
+% TODO <link src="WEAV">
+% TODO spam prevention: Bayesian filters (fights individuals) + hashcash (fights farms)
 
 \section{Implementation}
 Nodes use a 512 bit elliptic curve keypair for their asymmetric encryption. Nodes use ECDSA with SHA-256 for the signature field of messages. Weav will automatically create a clickable link to the tag or the URI of a message.
 
-% TODO overlay/IRC mechanism for finding nodes based on ID and signalling and crap
+% network for finding node details by their ID (DP, network contacts)
 
 \section{Future work}
 % message retrieval
+% integrating social networks to fight sybil/omission attacks
 
 \section{Conclusion}
 % This is what people read to get a sense of the innovations of the project, and is like the blurb of the paper.
 Something here soon.
 Incentives to produce quality content — filtering, don't distribute non-existent messages, keep messages so others may get them
+Presented a relatively simple set of RPCs (gossipCyclon, gossipVicinity, gossipRings, publish, getMessage, getRecent) which produces a decentralised and peer-to-peer publish-subscribe overlay, with novel incentives for producing quality content
 
 \bibliography{whitepaper}{}
 \bibliographystyle{plain}
