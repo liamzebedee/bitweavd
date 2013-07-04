@@ -253,21 +253,42 @@ The other RPC a node might use when they have recently rejoined the network and 
 
 \section{Private communications}
 \label{private}
-The final aspect to our communications is private messaging, which I define as a list of nodes communicating privately on a thread. A node will publish messages to a specific set of nodes for a thread, which I call a \textbf{whitelist}. Such a whitelist is independently maintained by each node in the private thread, so no new nodes are added without each participant reviewing it independently. 
+% rename whitelist to parti
+The final aspect to our communications is private messaging, which I define as a list of nodes communicating privately on a thread. A node will publish messages to a specific set of nodes for a thread, which I call the \textbf{participants}. Such a list of participants is independently maintained by each node in the private thread, so no new nodes are added without each participant reviewing it independently. 
 
 Private threads are started by sending an invite RPC to a node. The \textbf{invite} RPC has four fields, the first two being related to the participants of the conversation and the latter two being related to the security of the content.
 
 The first field is the \textbf{thread}. which maps to the ID of the private thread. The thread ID is computed as the ID function over the content of the string "private" appended by some random ID.
 
-The second field is the \textbf{whitelist}, which maps to an array of profiles for nodes who are to be involved in this conversation. Participants won't necessarily know the other participants so we distribute their profiles here. 
+The second field is the \textbf{participants}, which maps to an array of profiles for nodes who are to be involved in this conversation. Participants won't necessarily know the other participants so we distribute their profiles here. 
 
 The third and fourth fields are essential in constructing perfect forward secrecy in the private messages sent between nodes. I employ a per-message ephemeral symmetric key to maintain the privacy of all other messages in the event that the keys is compromised. What follows is an initial public key being exchanged by each node in the conversation. The first message any node sends will contain an randomly generated symmetric key for decrypting the content, which is signed by the private key counterpart to the respective initial public key each node distributes. The third field is the \textbf{initialPublicKey}, which is a temporary public key signed by a nodes long-term private key. The fourth field is the \textbf{publicKey}, which is the node's public key.
 
-\paragraph*{Starting a private conversation.} A node $P$ will send out an invite RPC attached with the conversations's ID and a list of nodes $P$ wishes to invite. A receiving node $Q$, if it is not subscribed to this thread, will prompt the user if they would like to join. If they accept, $Q$ will add the thread ID to its interests with a high priority. 
+\paragraph*{Starting a private conversation.} 
+\begin{enumerate}
+\item For a node $P$.
+\item Generate a temporary public/private keypair.
+\item Let initialPublicKey be equal to the temporary public key signed by $P$'s private key.
+\item Generate the thread ID: $threadID = ID('private'+random())$.
+\item Let publicKey be $P$'s public key.
+\item Send the invite to all nodes.
+\item For a node $Q$ receiving this invite, and if it doesn't know of the thread, it prompts the user to join it. If the user accepts, $Q$ will add the thread ID to its interests with a high priority. It then generates a temporary public/private keypair and sends a response containing the initial public key of $Q$ signed by $Q$'s private key to all the participants. 
+\end{enumerate}
 
-\paragraph*{Recommending an invite.} For a node $P$ who invites a node $X$ to a thread, $P$ must distribute a recommendation to the private subscribers of that thread so that they may add $X$ to their respective whitelists. In this circumstance, if a subscriber $Q$ receives an invite and is subscribed to the thread, it adds the nodes in whitelist to its whitelist if the user accepts the prompt.
+\paragraph*{Distributing messages}
+Within a private conversation, all participants are interconnected and must receive all messages. Unlike public messaging, we do not use the publish-subscribe model, as scalability is not a concern. Before a node may receive and decrypt messages it must receive all the initial public keys of participants: until then a node will ignore messages from a node. 
 
-So I have covered how nodes are invited to these private threads, I will now describe the mechanics of private communication. Private message distribution is very simple: since we assume our transport protocol is secure, there is no need for individual message encryption. 
+To distribute a message, we encrypt its content by a new temporal symmetric key distributed with every message, encrypted by the temporal public key. I add two new fields for a private message: \textbf{nextTempPublicKey} and \textbf{cryptKey}.
+\begin{enumerate}
+\item For a node $P$ and a message with content $C$.
+\item Generate a new temporal public/private keypair for the next message, and set the nextTempPublicKey field to this temporal public key signed by $P$'s private key.
+\item Set cryptKey to the randomly generated symmetric key, and sign it with $P$'s current temporal public key. For $P$'s first message, the temporal public key is the initial public key that $P$ generated when starting the conversation. For any message following, the temporal public key is the public key mentioned in the nextTempPublicKey field of the last message. 
+\item Set content to the original content encrypted by the cryptKey.
+\item Set the thread to the private thread ID. 
+\item Send the message to all participants.
+\end{enumerate}
+
+% TODO recommendInvite
 
 % TODO protocol for video/audio chat
 \subsection*{Video/Audio communications}
@@ -281,7 +302,7 @@ So I have covered how nodes are invited to these private threads, I will now des
 
 \section{Future work}
 \begin{enumerate}
-\list Spam prevention using Bayesian filters (fights individuals) and Hashcash (fights spam farms)
+\item Spam prevention using Bayesian filters (fights individuals) and Hashcash (fights spam farms)
 \item Integrating a trust mechanism to fight malicious nodes (omission attacks)
 \item Integrating a long-term storage option for message retrieval
 \end{enumerate}
