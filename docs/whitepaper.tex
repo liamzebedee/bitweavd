@@ -10,7 +10,7 @@
 
 
 \documentclass[10pt,a4paper,onecolumn]{article}
-\usepackage[utf8]{inputenc}
+\usepackage[utf8x]{inputenc}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -19,7 +19,7 @@
 \usepackage{enumerate}
 \author{Liam Edwards-Playne \textless liamz.co\textgreater}
 \date{June 1, 2013}
-\title{BitWeav — scalable realtime decentralised and peer-to-peer communications}
+\title{BitWeav — scalable real-time decentralised and peer-to-peer communications}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -27,7 +27,7 @@
 
 \section{Introduction}
 \label{intro}
-In the last half-decade we have seen how the microblogging atmosphere of \textit{Twitter} has proven the value of online communication. The fundamental principle of microblogging, which is the compacting of ideas into 140 characters, has sparked a revolution in how we communicate. Users could spark a conversation on topics (tags) with strangers, discussing anything and everything in real-time. Through trending topics, this public yet often concealed discussion platform which is online communication could give rise to the sharing of influential ideas and the stirring of the masses. We could see this in events such as the Egyptian Revolution of 2011 and Occupy Wall Street. Such an invaluable resource must be kept sustainable, but we have seen that due to the centralised nature of this tool, as well as its issues with corporate control, there is a need for an alternative. 
+In the last half-decade we have seen how the micro-blogging atmosphere of \textit{Twitter} has proven the value of online communication. The fundamental principle of micro-blogging, which is the compacting of ideas into 140 characters, has sparked a revolution in how we communicate. Users could spark a conversation on topics (tags) with strangers, discussing anything and everything in real-time. Through trending topics, this public yet often concealed discussion platform which is online communication could give rise to the sharing of influential ideas and the stirring of the masses. We could see this in events such as the Egyptian Revolution of 2011 and Occupy Wall Street. Such an invaluable resource must be kept sustainable, but we have seen that due to the centralised nature of this tool, as well as its issues with corporate control, there is a need for an alternative. 
 
 A similar, older and more sustainable platform is \textit{IRC}. Like \textit{Twitter}, \textit{IRC} facilitated public text-based discussion on topics (channels). It had its advantages and disadvantages as it used a moderator-based group discussion device called a channel, but the user bases of such were fragmented across differing \textit{IRC} networks. Nonetheless, its more advanced organised discussion led to it becoming the key communications tool for 'hackers'. Hackers found the setup requiring minimum personal details, in combination with the simplistic and programmable interface which is the \textit{IRC} protocol, allowed for high-quality discussions that focused on the content. 
 
@@ -278,20 +278,22 @@ The third and fourth fields are essential in constructing perfect forward secrec
 \paragraph*{Distributing messages}
 Within a private conversation, all participants are interconnected and must receive all messages. Unlike public messaging, we do not use the publish-subscribe model, as scalability is not a concern. Before a node may receive and decrypt messages it must receive all the initial public keys of participants: until then a node will ignore messages from a node. 
 
-To distribute a message, we encrypt its content by a new temporal symmetric key distributed with every message, encrypted by the temporal public key. I add two new fields for a private message: \textbf{nextTempPublicKey} and \textbf{cryptKey}.
+To distribute a message, we encrypt its content by a new temporal symmetric key distributed with every message, encrypted by the temporal public key. I add two new fields for a private message: nextTempPublicKey and cryptKeys.
 \begin{enumerate}
 \item For a node $P$ and a message with content $C$.
-\item Generate a new temporal public/private keypair for the next message, and set the nextTempPublicKey field to this temporal public key signed by $P$'s private key.
-\item Set cryptKey to the randomly generated symmetric key, and sign it with $P$'s current temporal public key. For $P$'s first message, the temporal public key is the initial public key that $P$ generated when starting the conversation. For any message following, the temporal public key is the public key mentioned in the nextTempPublicKey field of the last message. 
+\item Generate a new temporal public/private keypair for the next message, and set the \textbf{nextTempPublicKey} field to this temporal public key signed by $P$'s private key.
+\item Randomly generate a symmetric key, and for each participant $Q$, map $Q$'s current temporal public key to this symmetric key signed by $Q$'s current temporal public key ­— this is the \textbf{cryptKeys} field. For $Q$'s first message, the temporal public key is the initial public key that $Q$ generated when starting the conversation. For any message following, the temporal public key is the public key mentioned in the nextTempPublicKey field of the last message. 
 \item Set content to the original content encrypted by the cryptKey.
 \item Set the thread to the private thread ID. 
 \item Send the message to all participants.
 \end{enumerate}
 
-% TODO recommendInvite
+\paragraph*{Inviting more nodes.}
+After the initial conversation has started, inviting a new node is simple. A new participant $P$ must distribute a \textbf{join} RPC, that contains $P$'s newly generated tempKey and the ID of the thread. 
 
 % TODO protocol for video/audio chat
 \subsection*{Video/Audio communications}
+I propose using WebRTC for video/audio communications. There are many advantages to using WebRTC, mainly that it is a pre-built framework backed by Google and becoming part of the Web technology suite. 
 
 % TODO <link src="WEAV">
 
@@ -302,16 +304,20 @@ To distribute a message, we encrypt its content by a new temporal symmetric key 
 
 \section{Future work}
 \begin{enumerate}
-\item Spam prevention using Bayesian filters (fights individuals) and Hashcash (fights spam farms)
-\item Integrating a trust mechanism to fight malicious nodes (omission attacks)
-\item Integrating a long-term storage option for message retrieval
+\item Spam prevention using Bayesian filters (fights individuals) and Hashcash (fights spam farms).
+\item Integrating a trust framework~\cite{ham2005ara} to fight malicious nodes (omission attacks).
+\item Integrating a long-term storage option for message retrieval.
 \end{enumerate}
 
 \section{Conclusion}
 % This is what people read to get a sense of the innovations of the project, and is like the blurb of the paper.
-Something here soon.
-Incentives to produce quality content — filtering, don't distribute non-existent messages, keep messages so others may get them
-Presented a relatively simple set of RPCs (gossipCyclon, gossipVicinity, gossipRings, publish, getMessage, getRecent, invite, recommendInvite) which produces a decentralised and peer-to-peer publish-subscribe overlay, with novel incentives for producing quality content
+Here I presented an open design for a completely decentralised/distributed peer-to-peer communications system that rivals Twitter, Skype and IRC. The messaging system facilitates topic tagging and threading, and each message is authenticated by the node that sent it using asymmetric cryptography. Each message, contact and topic is identified by a single data type called the ID, and this ID can be represented simply for human recognition. 
+
+I have also demonstrated a simple implementation of private messaging that has perfect forward secrecy using a per-message temporal symmetric key. For enhanced communications I have also suggested integrating video/audio calling using WebRTC. 
+
+All of these concepts are combined with a novel approach to maintaining quality content, using multiple incentives. Content is filtered from topics if it is not on-topic and nodes are required to temporarily store messages in a thread if they are to reply to them.
+
+Lastly this functionality is facilitated by a relatively small set of RPCs: \textit{gossipCyclon}, \textit{gossipVicinity}, \textit{gossipRings}, \textit{publish}, \textit{getMessage}, \textit{getRecent}, \textit{invite} and \textit{join}. 
 
 \bibliography{whitepaper}{}
 \bibliographystyle{plain}
