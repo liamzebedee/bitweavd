@@ -120,9 +120,10 @@ In this section I have outlined two optional fields: the reply and root fields. 
 
 \section{Security}
 \label{security}
-A principle objective of \textit{BitWeav} is to be secure. The idea that security should be ubiquitous is fundamental to its design.
+A principle objective of \textit{BitWeav} is to be secure; The idea that security should be ubiquitous is fundamental to its design.
 
-Nodes must communicate via a secure transport protocol to preserve the authenticity, integrity, and completeness of data sent within the network. It should be resistant to replay attacks and have perfect forward secrecy. This is further described in chapter~\ref{impl}.
+Nodes must communicate via a secure transport protocol to preserve the authenticity, integrity, and completeness of data sent within the network. It should be resistant to replay attacks and have perfect forward secrecy enabled at all times. This aspect is implementation dependent.
+%, however I have described it in implementation.
 
 \section{Overlay network}
 \label{network}
@@ -133,7 +134,7 @@ I eventually discovered \textit{PolderCast}~\cite{poldercast}, a recent publish-
 In this section I will outline the design of \textit{PolderCast} and describe my modifications to it.
 
 \subsection{PolderCast}
-The overlay network is composed of nodes and topics, both being uniquely identified by an ID (a basic ID as described in ch.~\ref{id}). \textbf{Nodes} are networked hosts that communicate with other nodes using a simple query-reply RPC framework (discussed in ch.~\ref{impl}). Nodes organise themselves around \textbf{topics}, to which they can subscribe to and publish messages on. At a conceptual level, each topic is modelled as a ring that connects all corresponding subscribers of it and only them. These rings are then augmented by random links across the topics which produces a single, connected and navigable overlay. 
+The overlay network is composed of nodes and topics, both being uniquely identified by an ID (a basic ID as described in ch.~\ref{id}). \textbf{Nodes} are networked hosts that communicate with other nodes using a simple query-reply RPC framework. Nodes organise themselves around \textbf{topics}, to which they can subscribe to and publish messages on. At a conceptual level, each topic is modelled as a ring that connects all corresponding subscribers of it and only them. These rings are then augmented by random links across the topics which produces a single, connected and navigable overlay. 
 
 The basis to the management of the overlay are three layered network modules: \emph{Cyclon}, \emph{Vicinity} and \emph{Rings}. Each module maintains its own routing table (called the view), managed by a separate gossiping protocol, which gossips periodically, asynchronously, and independently from the other two modules.
 
@@ -253,43 +254,36 @@ The other RPC a node might use when they have recently rejoined the network and 
 
 \section{Private communications}
 \label{private}
-% rename whitelist to parti
-The final aspect to our communications is private messaging, which I define as a list of nodes communicating privately on a thread. A node will publish messages to a specific set of nodes for a thread, which I call the \textbf{participants}. Such a list of participants is independently maintained by each node in the private thread, so no new nodes are added without each participant reviewing it independently. 
+The final aspect to our communications is private messaging, which I define as a list of interconnected nodes communicating privately on a thread, and unlike public messaging, does not use the PolderCast publish-subscribe model. A node will publish messages to a specific set of nodes for a thread, which I call the \textbf{participants}. Such a list of participants is independently maintained by each node in the private thread, so no new nodes are added without each participant reviewing it independently. Additionally, all messages have perfect forward secrecy as due to the transport protocol (see ch.~\ref{security}), to maintain the privacy of messages sent in the event that the security of one is compromised, a property I have deemed desirable in such a system. 
 
-Private threads are started by sending an invite RPC to a node. The \textbf{invite} RPC has four fields, the first two being related to the participants of the conversation and the latter two being related to the security of the content.
+Nodes are given information about new private threads by another node sending an \textit{invite} RPC. From there, they may join by sending \textit{join} RPCs to all the participants. New participants may also be added through firstly being sent an \textit{invite} and then distributing such \textit{join} messages to participants upon accepting the invite.
 
-The first field is the \textbf{thread}. which maps to the ID of the private thread. The thread ID is computed as the ID function over the content of the string "private" appended by some random ID.
+\subsection*{Inviting nodes.}
+The \textbf{invite} RPC has four fields: thread, participants and publicKey. A private thread is identified by an ID, which is generated by a computation of the ID function over the content of the string "private" appended by some random ID. The \textbf{thread} field maps to this ID. 
 
-The second field is the \textbf{participants}, which maps to an array of profiles for nodes who are to be involved in this conversation. Participants won't necessarily know the other participants so we distribute their profiles here. 
+The second field is the \textbf{participants}, which maps to an array of profiles for nodes who are to be involved in this thread. Participants won't necessarily know the other participants so we distribute their profiles here. 
 
-The third and fourth fields are essential in constructing perfect forward secrecy in the private messages sent between nodes. I employ a per-message ephemeral symmetric key to maintain the privacy of all other messages in the event that the keys is compromised. What follows is an initial public key being exchanged by each node in the conversation. The first message any node sends will contain an randomly generated symmetric key for decrypting the content, which is signed by the private key counterpart to the respective initial public key each node distributes. The third field is the \textbf{initialPublicKey}, which is a temporary public key signed by a nodes long-term private key. The fourth field is the \textbf{publicKey}, which is the node's public key.
+Finally there is the \textbf{publicKey}, which simply is the node's public key, as we cannot be certain that the participants know of the node's key and thus must distribute it.
 
-\paragraph*{Starting a private conversation.} 
+The procedure for a node $P$ to invite another node $Q$ is as follows:
 \begin{enumerate}
-\item For a node $P$.
-\item Generate a temporary public/private keypair.
-\item Let initialPublicKey be equal to the temporary public key signed by $P$'s private key.
-\item Generate the thread ID: $threadID = ID('private'+random())$.
-\item Let publicKey be $P$'s public key.
-\item Send the invite to all nodes.
-\item For a node $Q$ receiving this invite, and if it doesn't know of the thread, it prompts the user to join it. If the user accepts, $Q$ will add the thread ID to its interests with a high priority. It then generates a temporary public/private keypair and sends a response containing the initial public key of $Q$ signed by $Q$'s private key to all the participants. 
+\item Generate or get the private thread ID. 
+\item Connect to $Q$.
+\item Construct and send an invite RPC to $Q$.
 \end{enumerate}
 
-\paragraph*{Distributing messages}
-Within a private conversation, all participants are interconnected and must receive all messages. Unlike public messaging, we do not use the publish-subscribe model, as scalability is not a concern. Before a node may receive and decrypt messages it must receive all the initial public keys of participants: until then a node will ignore messages from a node. 
+\subsection*{Joining the private thread.}
+The \textbf{join} RPC is very simple, having only the fields \textit{thread} and \textit{publicKey}. The \textbf{thread} field maps to the ID of the thread, to distinguish this join from others. The \textbf{publicKey} maps to the public key of the joining node — as this RPC is distributed to all the participants of the thread, they may not know of the node already, and thus need this. 
 
-To distribute a message, we encrypt its content by a new temporal symmetric key distributed with every message, encrypted by the temporal public key. I add two new fields for a private message: nextTempPublicKey and cryptKeys.
+The procedure for a node $P$ to join a thread is as follows:
 \begin{enumerate}
-\item For a node $P$ and a message with content $C$.
-\item Generate a new temporal public/private keypair for the next message, and set the \textbf{nextTempPublicKey} field to this temporal public key signed by $P$'s private key.
-\item Randomly generate a symmetric key, and for each participant $Q$, map $Q$'s current temporal public key to this symmetric key signed by $Q$'s current temporal public key ­— this is the \textbf{cryptKeys} field. For $Q$'s first message, the temporal public key is the initial public key that $Q$ generated when starting the conversation. For any message following, the temporal public key is the public key mentioned in the nextTempPublicKey field of the last message. 
-\item Set content to the original content encrypted by the cryptKey.
-\item Set the thread to the private thread ID. 
-\item Send the message to all participants.
+\item Construct a \textbf{join} RPC.
+\item Connect to each participant mentioned in the invite, and send the join RPC to them.
+\item Begin listening for messages.
 \end{enumerate}
 
-\paragraph*{Inviting more nodes.}
-After the initial conversation has started, inviting a new node is simple. A new participant $P$ must distribute a \textbf{join} RPC, that contains $P$'s newly generated tempKey and the ID of the thread. 
+\subsection*{Publishing private messages.}
+
 
 % TODO protocol for video/audio chat
 \subsection*{Video/Audio communications}
@@ -317,7 +311,7 @@ I have also demonstrated a simple implementation of private messaging that has p
 
 All of these concepts are combined with a novel approach to maintaining quality content, using multiple incentives. Content is filtered from topics if it is not on-topic and nodes are required to temporarily store messages in a thread if they are to reply to them.
 
-Lastly this functionality is facilitated by a relatively small set of RPCs: \textit{gossipCyclon}, \textit{gossipVicinity}, \textit{gossipRings}, \textit{publish}, \textit{getMessage}, \textit{getRecent}, \textit{invite} and \textit{join}. 
+Finally this functionality is facilitated by a relatively small set of eight RPCs: \textit{gossipCyclon}, \textit{gossipVicinity}, \textit{gossipRings}, \textit{publish}, \textit{getMessage}, \textit{getRecent}, \textit{invite} and \textit{join}. 
 
 \bibliography{whitepaper}{}
 \bibliographystyle{plain}
