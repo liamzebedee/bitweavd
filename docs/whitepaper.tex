@@ -1,4 +1,4 @@
-% bitWeav whitepaper
+% BitWeav whitepaper.
 % Written entirely by Liam (liamzebedee) Edwards-Playne.
 % Licensed under Attribution-ShareAlike 3.0 Unported
 % https://creativecommons.org/licenses/by-sa/3.0/
@@ -269,7 +269,7 @@ The procedure for a node $P$ to invite another node $Q$ is as follows:
 \begin{enumerate}
 \item Generate or get the private thread ID. 
 \item Connect to $Q$.
-\item Construct and send an invite RPC to $Q$.
+\item Construct and send an invite RPC to $Q$ (do not expect a response).
 \end{enumerate}
 
 \subsection*{Joining the private thread.}
@@ -278,16 +278,27 @@ The \textbf{join} RPC is very simple, having only the fields \textit{thread} and
 The procedure for a node $P$ to join a thread is as follows:
 \begin{enumerate}
 \item Construct a \textbf{join} RPC.
-\item Connect to each participant mentioned in the invite, and send the join RPC to them.
+\item Connect to each participant $Q$ mentioned in the invite, and send the join RPC to them. Await a response from $Q$ that contains either an indication of acceptance or not, with a reason.
 \item Begin listening for messages.
 \end{enumerate}
 
-\subsection*{Publishing private messages.}
+\subsection*{Distributing private messages.}
+Publishing messages to a private thread is simple. To send a message we do the following:
+\begin{enumerate}
+\item Construct a message.
+\item Set the \textit{root} field to the thread ID. 
+\item Set the \textit{reply} field to the previous message received.
+\item Send to all the participants of the conversation. 
+\end{enumerate}
 
+Receiving a message is just as simple: if the \textit{root} field of the message is the ID of one of the private threads we participate in, and the \textit{publicKey} field is the verified public key of one of the participants, then we append it to user's view. 
 
-% TODO protocol for video/audio chat
 \subsection*{Video/Audio communications}
-I propose using WebRTC for video/audio communications. There are many advantages to using WebRTC, mainly that it is a pre-built framework backed by Google and becoming part of the Web technology suite. 
+I won't describe the details of the video/audio communications, because it is outside of this design. Instead I will describe the rationale behind having video/audio communications and the requirements for the implementation.
+
+\paragraph*{Rationale.} The rationale behind video/audio communications is that is a modern aspect of private communications. Audio is most prominent in mobile communications, and video calling is also gaining support. As well as one of the major inspirations for Weav, Skype, having video/audio communications in-built, this is certainly a wanted feature among people desiring secure private communications.
+
+\paragraph*{Requirements.} Video and audio calling must support multiple incoming secure audio/video streams in a single private conversation. Such streams must utilise open and free codecs, and must have mechanisms for improvement of user experience (noise reduction, echo cancellation, jitter prevention etc.). 
 
 % TODO <link src="WEAV">
 
@@ -295,13 +306,6 @@ I propose using WebRTC for video/audio communications. There are many advantages
 %Nodes use a 512 bit elliptic curve keypair for their asymmetric encryption. Nodes use ECDSA with SHA-256 for the signature field of messages. Weav will automatically create a clickable link to the tag or the URI of a message.
 
 % network for finding node details by their ID (DP, network contacts)
-
-\section{Future work}
-\begin{enumerate}
-\item Spam prevention using Bayesian filters (fights individuals) and Hashcash (fights spam farms).
-\item Integrating a trust framework~\cite{ham2005ara} to fight malicious nodes (omission attacks).
-\item Integrating a long-term storage option for message retrieval.
-\end{enumerate}
 
 \section{Conclusion}
 % This is what people read to get a sense of the innovations of the project, and is like the blurb of the paper.
@@ -312,6 +316,15 @@ I have also demonstrated a simple implementation of private messaging that has p
 All of these concepts are combined with a novel approach to maintaining quality content, using multiple incentives. Content is filtered from topics if it is not on-topic and nodes are required to temporarily store messages in a thread if they are to reply to them.
 
 Finally this functionality is facilitated by a relatively small set of eight RPCs: \textit{gossipCyclon}, \textit{gossipVicinity}, \textit{gossipRings}, \textit{publish}, \textit{getMessage}, \textit{getRecent}, \textit{invite} and \textit{join}. 
+
+\section{Future work}
+\begin{enumerate}
+\item Spam prevention using Bayesian filters (fights individuals) and Hashcash (fights spam farms).
+\item Integrating a trust framework~\cite{ham2005ara} to fight malicious nodes (omission attacks).
+\item Integrating a long-term storage option for message retrieval.
+\item Support for off-the-record messaging in the private messaging protocol.
+\item Support for display pictures.
+\end{enumerate}
 
 \bibliography{whitepaper}{}
 \bibliographystyle{plain}
