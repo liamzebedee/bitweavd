@@ -7,21 +7,11 @@ require "bundler/gem_tasks"
 #
 #############################################################################
 
-def name
-  @name ||= Dir['*.gemspec'].first.split('.').first
-end
+gemspec = eval(File.read(Dir["*.gemspec"].first))
 
-def version
-  line = File.read("lib/#{name}.rb")[/^\s*VERSION\s*=\s*.*/]
-  line.match(/.*VERSION\s*=\s*['"](.*)['"]/)[1]
-end
-
-def gemspec_file
-  "#{name}.gemspec"
-end
-
-def gem_file
-  "#{name}-#{version}.gem"
+desc "Validate the gemspec"
+task :gemspec do
+  gemspec.validate
 end
 
 #############################################################################
@@ -32,8 +22,18 @@ end
 
 task :default => [:build]
 
-task :build do
-  sh "mkdir -p pkg"
-  sh "gem build #{gemspec_file}"
-  sh "mv #{gem_file} pkg"
+task :build => :gemspec do
+  system "gem build #{gemspec.name}.gemspec"
+  FileUtils.mkdir_p "pkg"
+  FileUtils.mv "#{gemspec.name}-#{gemspec.version}.gem", "pkg"
+end
+
+desc "Install gem locally"
+task :install => :build do
+  system "gem install pkg/#{gemspec.name}-#{gemspec.version}"
+end
+
+desc "Clean automatically generated files"
+task :clean do
+  FileUtils.rm_rf "pkg"
 end
