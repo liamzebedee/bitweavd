@@ -32,7 +32,7 @@ end
 
 task :default => [:build]
 
-task :build => :gemspec do
+task :build do
   sh "mkdir -p pkg"
   sh "gem build #{gemspec_file}"
   sh "mv #{gem_file} pkg"
