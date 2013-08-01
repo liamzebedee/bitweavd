@@ -1,5 +1,5 @@
 require "bitweavd/version"
 
 module BitWeavd
-  # Your code goes here...
+  VERSION = '0.0.1'
 end
