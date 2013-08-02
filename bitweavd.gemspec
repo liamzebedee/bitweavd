@@ -5,11 +5,11 @@ require 'bitweavd'
 
 Gem::Specification.new do |s|
   s.name          = "bitweavd"
-  s.version       = BitWeavd::VERSION
+  s.version       = BitWeavD::VERSION
   s.authors       = ["Liam Edwards-Playne"]
   s.email         = ["liamzebedee@yahoo.com.au"]
   s.description   = %q{bitweavd is the premier proof-of-concept implementation of a client for the BitWeav protocol. BitWeav is a design for scalable and decentralised peer-to-peer micropublishing.}
-  s.summary       = %q{Daemon that implements the BitWeav protocol for scalable and decentralised peer-to-peer micropublishing}
+  s.summary       = BitWeavD::SUMMARY
   s.homepage      = "http://bitweav.org"
   s.license       = "MIT"
 
@@ -17,8 +17,10 @@ Gem::Specification.new do |s|
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.test_files    = s.files.grep(%r{^(test|s|features)/})
   s.require_paths = ["lib"]
+  
+  # Dependencies.
+  s.add_runtime_dependency "commander", "~> 4.1.4"
 
   s.add_development_dependency "bundler", "~> 1.3"
-  s.add_development_dependency "rake"
-  s.add_runtime_dependency "rpcjson", ">= 0.0.2"
+  s.add_development_dependency "rake"  
 end

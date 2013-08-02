@@ -1,2 +1,21 @@
 #!/usr/bin/env ruby
+require 'commander/import'
 require 'bitweavd'
+
+program :name, 'bitweavd'
+program :version, BitWeavD::VERSION
+program :description, BitWeavD::SUMMARY
+
+default_command :default
+
+### bitweav
+command :default do |c|
+  c.syntax = 'bitweavd [options]'
+  c.description = 'Runs the BitWeav daemon'
+  c.option '--dataDir DIRECTORY', String, 'Directory to store BitWeav data'
+  
+  c.when_called do |args, options|
+    options.default :dataDir => File.join(Dir.home, '.bitweav')
+    BitWeavD::Daemon.run(options)
+  end
+end
