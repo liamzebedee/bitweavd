@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require 'commander/import'
-require 'bitweavd'
+require 'bitweavd-info'
 
 program :name, 'bitweavd'
 program :version, BitWeavD::VERSION
