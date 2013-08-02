@@ -1,5 +1,5 @@
 module BitWeavD
-  class Daemon
+  class CmdDaemon
     def self.run(options)
       config = BitWeavD::Configuration.new(options.dataDir)
     end
