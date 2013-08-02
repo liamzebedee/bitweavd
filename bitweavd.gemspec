@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
   
   # Dependencies.
   s.add_runtime_dependency "commander", "~> 4.1.4"
+  s.add_runtime_dependency "toml-rb", "~> 0.1.3"
 
   s.add_development_dependency "bundler", "~> 1.3"
   s.add_development_dependency "rake"  

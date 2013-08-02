@@ -1,6 +1,10 @@
-# internal requires
-require_relative 'bitweavd/daemon'
+# 3rd party
+require 'toml'
 
+# internal requires
+require 'bitweavd/daemon'
+require 'bitweavd/config'
+require 'bitweavd/core_ext'
 
 module BitWeavD
   VERSION = '0.0.1'
