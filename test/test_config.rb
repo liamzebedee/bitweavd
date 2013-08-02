@@ -1,6 +1,6 @@
 require 'helper'
 
-class TestPage < Test::Unit::TestCase  
+class TestConfiguration < Test::Unit::TestCase  
   def test_modify
   	# Modify, save, reload and check if the value has persisted
   	config = BitWeavD::Configuration.new(File.join(Dir.home, '.bitweav'))
