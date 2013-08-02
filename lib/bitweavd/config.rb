@@ -6,11 +6,11 @@ module BitWeavD
         :addr => 'localhost'
       },
     }
-    attr_accessor :config, :data_dir, :config_file
+    attr_accessor :config, :data_dir, :config_path
     
     def initialize(data_dir)
       @data_dir = data_dir
-      @config_file = File.join(data_dir, 'bitweav.toml')
+      @config_path = File.join(data_dir, 'bitweav.toml')
       @config = load_config
       @config.deep_merge(CONFIG_DEFAULT)
       save_config
@@ -18,17 +18,17 @@ module BitWeavD
     
     def load_config
       begin
-        TOML.load_file(config_file, symbolize_keys: true)
+        TOML.load_file(config_path, symbolize_keys: true)
       rescue Errno::ENOENT
         # file doesn't exist, create it.
-        FileUtils.mkdir_p(File.dirname(config_file))
-        File.new(config_file, "w").close
+        FileUtils.mkdir_p(File.dirname(config_path))
+        File.new(config_path, "w").close
         CONFIG_DEFAULT
       end
     end
     
     def save_config
-      File.open(config_file, 'w') { |file| 
+      File.open(config_path, 'w') { |file| 
         file.write(TOML.dump(config))
       }
     end

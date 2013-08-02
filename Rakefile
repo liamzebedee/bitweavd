@@ -1,4 +1,5 @@
 require "bundler/gem_tasks"
+require 'rake/testtask'
 
 
 #############################################################################
@@ -20,7 +21,13 @@ end
 #
 #############################################################################
 
-task :default => [:build]
+task :default => [:build, :test]
+
+Rake::TestTask.new(:test) do |test|
+  test.libs << 'test'
+  test.pattern = 'test/test_*.rb'
+  #test.verbose = true
+end
 
 task :build => :gemspec do
   system "gem build #{gemspec.name}.gemspec"
