@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.description   = %q{bitweavd is the premier proof-of-concept implementation of a client for the BitWeav protocol. BitWeav is a design for scalable and decentralised peer-to-peer micropublishing.}
   s.summary       = BitWeavD::SUMMARY
   s.homepage      = "http://bitweav.org"
-  s.license       = "MIT"
+  s.license       = "Apache 2.0"
 
   s.files         = `git ls-files`.split($/)
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }

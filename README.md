@@ -5,4 +5,4 @@ bitweavd is the proof-of-concept daemon that implements the [BitWeav](http://bit
 
 ---
 
-Founded and built by [Liam (liamzebedee)](http://liamz.co).
+Apache 2.0 Licensing. Founded and built by [Liam (liamzebedee)](http://liamz.co).
