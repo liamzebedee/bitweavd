@@ -21,15 +21,14 @@ end
 #
 #############################################################################
 
-task :default => [:build, :test]
+task :default => [:test, :build]
 
 Rake::TestTask.new(:test) do |test|
   test.libs << 'test'
   test.pattern = 'test/test_*.rb'
-  #test.verbose = true
 end
 
-task :build => :gemspec do
+task :build => [:gemspec, :clean] do
   system "gem build #{gemspec.name}.gemspec"
   FileUtils.mkdir_p "pkg"
   FileUtils.mv "#{gemspec.name}-#{gemspec.version}.gem", "pkg"
