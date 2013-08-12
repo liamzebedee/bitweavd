@@ -3,7 +3,9 @@ module BitWeavD
     CONFIG_DEFAULT = {
       :clientAPI => {
         :port => 8880,
-        :addr => 'localhost'
+        :host => 'localhost',
+        :username => 'default',
+        :password => 'default'
       },
     }
     attr_accessor :config, :data_dir, :config_path
@@ -11,8 +13,7 @@ module BitWeavD
     def initialize(data_dir)
       @data_dir = data_dir
       @config_path = File.join(data_dir, 'bitweav.toml')
-      @config = load_config
-      @config.deep_merge(CONFIG_DEFAULT)
+      @config = load_config.merge(CONFIG_DEFAULT)
       save_config
     end
     
