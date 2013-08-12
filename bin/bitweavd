@@ -7,42 +7,22 @@ program :name, 'bitweavd'
 program :version, BitWeavD::VERSION
 program :description, BitWeavD::SUMMARY
 
-default_command :commandLineRPC
+default_command :bitweavd
 
 global_option '--dataDir DIRECTORY', String, 'Specify data directory'
-def setDefaults(options)
-  options.default :dataDir => File.join(Dir.home, '.bitweav')
-end
 
-
-
-### bitweavd command-line RPC
-command :commandLineRPC do |c|
+command :bitweavd do |c|
   c.syntax = 'bitweavd [command] [options]'
-  c.description = 'Runs RPC commands on the BitWeav daemon through the command-line'
   
   c.when_called do |args, options|
-    setDefaults(options)
+    options.default :dataDir => File.join(Dir.home, '.bitweav')
     
     if args.empty?
-      puts 'Error: No command was specified'
-      exit
+      ### Run daemon
+      BitWeavD::CmdDaemon.run(options)
+    else
+      ### Run RPC client
+      BitWeavD::CmdRpc.run(options, args)
     end
-    
-    BitWeavD::CmdRpc.run(args, options)
-  end
-end
-
-
-
-### bitweavd daemon
-command :daemon do |c|
-  c.syntax = 'bitweavd daemon [options]'
-  c.description = 'Runs the BitWeav daemon'
-  
-  c.when_called do |args, options|
-    setDefaults(options)
-    
-    BitWeavD::CmdDaemon.run(options)
   end
 end
