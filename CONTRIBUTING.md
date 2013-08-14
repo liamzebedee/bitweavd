@@ -11,27 +11,27 @@ GitHub issues is our hub for contribution. If you want something to do, look at 
 ## Code
 It is important you follow **ALL OF THESE STEPS** in sequential order.
 
-**Setting up**:
+### Setting up
  - BitWeav uses the [fork-pull](https://help.github.com/articles/using-pull-requests#fork--pull) model of development.
  - [Fork the repo](https://help.github.com/articles/fork-a-repo) to begin with, and start developing (we use the `master` branch).
  - After you have set up, get to writing code.
 
-**Writing**: 
+### Writing
  - Ruby 1.9+ for the entirety of the project. 
  - Rakefile for building, Bundler for dependencies, Gem for distribution, Travis for continuous integration. 
  - **You need to commit any new files when developing**, as the gemspec uses git to list all the files of the project.
  - Your code should adhere to the [style guide](https://github.com/styleguide/ruby). 
- - **Master should always be kept stable!**
+ - **The `master` branch should always be kept stable!**
  - When you are done coding an aspect, you probably should test it.
 
-**Testing**:
+### Testing
  - I'm focusing on implementation rather than prettiness, so we are currently using the vanilla TestCase for testing things.
  - Tests are located in */test*, and must be prefixed with `test_` in the filename. 
  - Look at an existing test for an example, they are very straightforward to understand.
  - Run the default rake task `rake` to build and test.
  - When you are done testing, and are sure it is stable, it's time to submit a pull request.
  
-**Pull request**:
+### Pull request
  - Make sure to commit and push your changes to your fork.
  - [Initiate a pull request](https://help.github.com/articles/using-pull-requests#initiating-the-pull-request)
  - Make sure to describe the changes, and reference any relevant issues. A descriptive title is key to getting it approved fast.
