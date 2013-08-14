@@ -14,6 +14,7 @@ It is important you follow **ALL OF THESE STEPS** in sequential order.
 ### Setting up
  - BitWeav uses the [fork-pull](https://help.github.com/articles/using-pull-requests#fork--pull) model of development.
  - [Fork the repo](https://help.github.com/articles/fork-a-repo) to begin with, and start developing (we use the `master` branch).
+ - If you aren't a terminal guy, use a graphical Git app: [Mac](http://mac.github.com/), [Windows](http://windows.github.com/), [Ubuntu](http://git-cola.github.io/downloads.html)
  - After you have set up, get to writing code.
 
 ### Writing
