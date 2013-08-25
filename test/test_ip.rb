@@ -1,7 +1,7 @@
 require 'helper'
 
 class TestGetIP < Test::Unit::TestCase  
-  def get_ip
-    BitWeavD.get_external_ip
+  def test_get_ip
+    puts BitWeavD::find_external_ip
   end
 end
