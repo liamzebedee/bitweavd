@@ -18,15 +18,10 @@ module BitWeavD
   def self.find_external_ip
     external_ip = ''
     
-    uri = URI.parse 'http://91.198.22.70:80' # checkip.dyndns.org
-    Net::HTTP.new(uri.host, uri.port).start do |http|
-      http.request_get('/') do |resp|
-        # The response looks like:
-        # Current IP Address: 81.155.100.200
-        # I peeked at https://github.com/haibt/dyndns_client/blob/master/dynclient.rb for this
-        external_ip = resp.read_body.gsub(/[^:]*: ([^<]*)<.*$/, "\\1")
-      end
-    end
+    # The json response looks like:
+    # {"ip": "122.148.96.160"}
+    uri = URI.parse 'http://ip.jsontest.com/'
+    Net::HTTP.get_response(uri) { |res| external_ip = JSON.parse(res.body)["ip"] }
     # XXX check if this doesn't work
     
     puts "External IP is #{external_ip}"
