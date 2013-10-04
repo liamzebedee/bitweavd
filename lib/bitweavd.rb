@@ -3,7 +3,6 @@ require 'toml'
 require 'webrick'
 require 'json'
 require 'net/http'
-require 'uri'
 require 'agent'
 
 # internal requires
@@ -20,8 +19,7 @@ module BitWeavD
     
     # The json response looks like:
     # {"ip": "122.148.96.160"}
-    uri = URI.parse 'http://ip.jsontest.com/'
-    Net::HTTP.get_response(uri) { |res| external_ip = JSON.parse(res.body)["ip"] }
+    Net::HTTP.get_response(URI('http://ip.jsontest.com/')) { |res| external_ip = JSON.parse(res.body)["ip"] }
     # XXX check if this doesn't work
     
     puts "External IP is #{external_ip}"
